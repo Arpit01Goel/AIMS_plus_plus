@@ -42,7 +42,7 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
       <Sidebar
         tabs={navTabs}
         collapsed={collapsed}
@@ -53,7 +53,7 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
         className="flex-1 transition-[margin] duration-300"
         style={{ marginLeft: collapsed ? "5rem" : "16rem" }}
       >
-        <div className="mx-auto w-full max-w-6xl px-6 pb-16 pt-12">{children}</div>
+        <div className="mx-auto w-full max-w-7xl px-8 pb-20 pt-8">{children}</div>
       </main>
     </div>
   );
@@ -69,26 +69,26 @@ type SidebarProps = {
 function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
   return (
     <nav
-      className={`fixed left-0 top-0 h-screen border-r border-white/10 bg-gradient-to-b from-indigo-950/95 via-slate-900/95 to-slate-950/95 backdrop-blur-xl transition-all duration-300 ${
+      className={`fixed left-0 top-0 h-screen border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
-      <div className="flex h-16 items-center border-b border-white/10 px-3">
+      <div className="flex h-20 items-center border-b border-white/30 px-4">
         <button
           onClick={onToggle}
-          className={`flex items-center gap-3 rounded-2xl text-slate-400 transition hover:bg-white/5 hover:text-white ${
+          className={`flex items-center gap-3 rounded-xl text-indigo-100 transition hover:bg-indigo-800 hover:text-white ${
             collapsed
               ? "mx-auto h-12 w-12 justify-center"
-              : "w-full justify-start px-3 py-3"
+              : "w-full justify-start px-4 py-3"
           }`}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Menu className="h-5 w-5 shrink-0" />
-          {!collapsed && <h1 className="text-lg font-bold text-white">AIMS++</h1>}
+          {!collapsed && <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>}
         </button>
       </div>
 
-      <ul className="mt-4 space-y-1 px-3">
+      <ul className="mt-6 space-y-1.5 px-4">
         {tabs.map((tab) => {
           const isActive =
             pathname === tab.href || pathname.startsWith(`${tab.href}/`);
@@ -97,26 +97,23 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
             <li key={tab.name}>
               <Link
                 href={tab.href}
-                className={`group flex items-center gap-3 rounded-2xl text-sm font-medium transition ${
+                className={`group flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
                   collapsed
                     ? "mx-auto h-12 w-12 justify-center"
-                    : "w-full justify-start px-3 py-3"
+                    : "w-full justify-start px-4 py-2.5"
                 } ${
                   isActive
-                    ? "bg-emerald-500/20 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    ? "bg-white text-indigo-900"
+                    : "text-indigo-100 hover:bg-indigo-800 hover:text-white"
                 }`}
                 title={collapsed ? tab.name : undefined}
               >
                 <Icon
                   className={`h-5 w-5 shrink-0 ${
-                    isActive ? "text-emerald-400" : "text-slate-400 group-hover:text-white"
+                    isActive ? "text-indigo-700" : "text-indigo-200 group-hover:text-white"
                   }`}
                 />
-                {!collapsed && <span>{tab.name}</span>}
-                {!collapsed && isActive && (
-                  <span className="ml-auto h-2 w-2 rounded-full bg-emerald-400"></span>
-                )}
+                {!collapsed && <span className="tracking-tight">{tab.name}</span>}
               </Link>
             </li>
           );
