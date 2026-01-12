@@ -165,17 +165,17 @@ const fetchStudentRecords = async (): Promise<StudentRecord> => {
 const getCategoryColor = (category: CourseCategory) => {
   switch (category) {
     case "SC":
-      return "bg-blue-100 text-blue-700 border-blue-300";
+      return "bg-indigo-100 text-indigo-700 border-indigo-300";
     case "GR":
-      return "bg-purple-100 text-purple-700 border-purple-300";
+      return "bg-indigo-100 text-indigo-700 border-indigo-300";
     case "HC":
-      return "bg-pink-100 text-pink-700 border-pink-300";
+      return "bg-indigo-100 text-indigo-700 border-indigo-300";
     case "NN":
-      return "bg-gray-100 text-gray-700 border-gray-300";
+      return "bg-slate-100 text-slate-700 border-slate-300";
     case "PC":
-      return "bg-emerald-100 text-emerald-700 border-emerald-300";
+      return "bg-indigo-100 text-indigo-700 border-indigo-300";
     case "FC":
-      return "bg-orange-100 text-orange-700 border-orange-300";
+      return "bg-indigo-100 text-indigo-700 border-indigo-300";
     default:
       return "bg-slate-100 text-slate-700 border-slate-300";
   }
@@ -184,13 +184,13 @@ const getCategoryColor = (category: CourseCategory) => {
 const getEnrollmentStatusColor = (status: EnrollmentStatus) => {
   switch (status) {
     case "enrolled":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-indigo-100 text-indigo-700";
     case "pending-instructor":
-      return "bg-amber-100 text-amber-700";
+      return "bg-slate-200 text-slate-700";
     case "pending-advisor":
-      return "bg-orange-100 text-orange-700";
+      return "bg-slate-200 text-slate-700";
     case "dropped":
-      return "bg-rose-100 text-rose-700";
+      return "bg-slate-300 text-slate-700";
     default:
       return "bg-slate-100 text-slate-700";
   }
@@ -212,24 +212,24 @@ const getEnrollmentStatusText = (status: EnrollmentStatus) => {
 };
 
 const getGradeColor = (grade: Grade) => {
-  if (grade === "A") return "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg shadow-green-200";
-  if (grade === "A-") return "bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg shadow-green-100";
-  if (grade === "B") return "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-200";
-  if (grade === "B-") return "bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-200";
-  if (grade === "C") return "bg-gradient-to-br from-yellow-500 to-orange-500 text-white shadow-lg shadow-yellow-200";
-  if (grade === "C-") return "bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-200";
-  if (["D", "F"].includes(grade)) return "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg shadow-red-200";
-  if (grade === "P") return "bg-gradient-to-br from-teal-400 to-cyan-500 text-white shadow-lg shadow-teal-100";
+  if (grade === "A") return "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200";
+  if (grade === "A-") return "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-100";
+  if (grade === "B") return "bg-gradient-to-br from-indigo-400 to-indigo-500 text-white shadow-lg shadow-indigo-200";
+  if (grade === "B-") return "bg-gradient-to-br from-indigo-300 to-indigo-400 text-white shadow-lg shadow-indigo-200";
+  if (grade === "C") return "bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-lg shadow-slate-200";
+  if (grade === "C-") return "bg-gradient-to-br from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-200";
+  if (["D", "F"].includes(grade)) return "bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-lg shadow-slate-200";
+  if (grade === "P") return "bg-gradient-to-br from-indigo-400 to-indigo-500 text-white shadow-lg shadow-indigo-100";
   if (grade === "") return "bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-lg shadow-slate-100";
   return "bg-gradient-to-br from-slate-400 to-slate-500 text-white shadow-lg shadow-slate-100";
 };
 
 const getAttendanceColor = (attendance: number) => {
-  if (attendance >= 95) return "text-emerald-600 font-bold";
-  if (attendance >= 90) return "text-green-600 font-semibold";
-  if (attendance >= 85) return "text-blue-600 font-medium";
-  if (attendance >= 75) return "text-amber-600 font-medium";
-  return "text-rose-600 font-bold";
+  if (attendance >= 95) return "text-indigo-600 font-bold";
+  if (attendance >= 90) return "text-indigo-600 font-semibold";
+  if (attendance >= 85) return "text-indigo-600 font-medium";
+  if (attendance >= 75) return "text-slate-600 font-medium";
+  return "text-slate-700 font-bold";
 };
 
 export default function RecordsPage() {
@@ -303,15 +303,15 @@ export default function RecordsPage() {
   return (
     <div className="space-y-6">
       {/* Alert Banner */}
-      <div className="rounded-xl border-l-4 border-rose-500 bg-gradient-to-r from-rose-50 to-pink-50 p-4 shadow-sm">
+      <div className="rounded-xl border-l-4 border-indigo-500 bg-gradient-to-r from-indigo-50 to-slate-50 p-4 shadow-sm">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-5 w-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-rose-900">
+            <p className="text-sm font-medium text-indigo-900">
               <span className="font-bold">NOTE:</span> Some of the grades shown here may be pending approval by the senate. The records confirmed by the academic section will take precedence over anything shown here.
             </p>
           </div>
@@ -319,14 +319,14 @@ export default function RecordsPage() {
       </div>
 
       {/* Header with CGPA */}
-      <div className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 p-8 shadow-2xl shadow-purple-300">
+      <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 p-8 shadow-2xl shadow-indigo-300">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="rounded-lg bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
                 Academic Performance
               </span>
-              <span className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
+              <span className="rounded-lg bg-indigo-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
                 {records.totalCredits} Credits
               </span>
             </div>
@@ -340,12 +340,12 @@ export default function RecordsPage() {
           <div className="text-right">
             <div className="rounded-2xl bg-white/10 px-6 py-4 backdrop-blur-md">
               <p className="text-xs font-bold uppercase tracking-wider text-white/80">Cumulative GPA</p>
-              <p className="mt-2 bg-gradient-to-br from-yellow-300 to-amber-400 bg-clip-text text-6xl font-black text-transparent drop-shadow-2xl">
+              <p className="mt-2 bg-gradient-to-br from-white to-indigo-100 bg-clip-text text-6xl font-black text-transparent drop-shadow-2xl">
                 {records.cgpa.toFixed(2)}
               </p>
               <div className="mt-2 flex items-center justify-center gap-1">
                 {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="h-4 w-4 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                  <svg key={i} className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 ))}
@@ -356,12 +356,12 @@ export default function RecordsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-3 rounded-2xl border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-2 shadow-lg">
+      <div className="flex gap-3 rounded-2xl border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 via-slate-50 to-slate-50 p-2 shadow-lg">
         <button
           onClick={() => setActiveTab("main")}
           className={`flex-1 rounded-xl px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
             activeTab === "main"
-              ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl shadow-indigo-300"
+              ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xl shadow-indigo-300"
               : "text-slate-600 hover:bg-white/50"
           }`}
         >
@@ -372,7 +372,7 @@ export default function RecordsPage() {
             onClick={() => setActiveTab("minor")}
             className={`flex-1 rounded-xl px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
               activeTab === "minor"
-                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl shadow-indigo-300"
+                ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xl shadow-indigo-300"
                 : "text-slate-600 hover:bg-white/50"
             }`}
           >
@@ -384,7 +384,7 @@ export default function RecordsPage() {
             onClick={() => setActiveTab("concentration")}
             className={`flex-1 rounded-xl px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
               activeTab === "concentration"
-                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-xl shadow-indigo-300"
+                ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xl shadow-indigo-300"
                 : "text-slate-600 hover:bg-white/50"
             }`}
           >
@@ -396,8 +396,8 @@ export default function RecordsPage() {
       {/* Grade Records */}
       <div className="space-y-6">
         {/* Program Title */}
-        <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-white via-purple-50 to-pink-50 p-6 shadow-xl">
-          <h2 className="text-2xl font-bold text-purple-900">{programTitle}</h2>
+        <div className="rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-white via-indigo-50 to-slate-50 p-6 shadow-xl">
+          <h2 className="text-2xl font-bold text-indigo-900">{programTitle}</h2>
         </div>
 
         {/* Semester Records */}
@@ -414,8 +414,8 @@ export default function RecordsPage() {
               {/* Semester Header */}
               <div className={`border-b-2 border-slate-200 px-6 py-5 ${
                 semester.isCurrent 
-                  ? "bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" 
-                  : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
+                  ? "bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700" 
+                  : "bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800"
               }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -430,7 +430,7 @@ export default function RecordsPage() {
                           {semester.semesterCode}
                         </h2>
                         {semester.isCurrent && (
-                          <span className="rounded-lg bg-white px-3 py-1 text-xs font-bold uppercase tracking-wider text-orange-600 shadow-lg">
+                          <span className="rounded-lg bg-white px-3 py-1 text-xs font-bold uppercase tracking-wider text-indigo-600 shadow-lg">
                             Current
                           </span>
                         )}
@@ -444,20 +444,20 @@ export default function RecordsPage() {
                     {!semester.isCurrent && (
                       <div className="rounded-xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
                         <p className="text-xs font-bold uppercase tracking-wider text-white/80">SGPA</p>
-                        <p className="mt-1 text-3xl font-black text-yellow-300 drop-shadow-lg">
+                        <p className="mt-1 text-3xl font-black text-white drop-shadow-lg">
                           {semester.sgpa.toFixed(2)}
                         </p>
                       </div>
                     )}
                     <div className="rounded-xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
                       <p className="text-xs font-bold uppercase tracking-wider text-white/80">CGPA</p>
-                      <p className="mt-1 text-3xl font-black text-emerald-300 drop-shadow-lg">
+                      <p className="mt-1 text-3xl font-black text-white drop-shadow-lg">
                         {semester.cgpa.toFixed(2)}
                       </p>
                     </div>
                     <div className="rounded-xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
                       <p className="text-xs font-bold uppercase tracking-wider text-white/80">Credits</p>
-                      <p className="mt-1 text-3xl font-black text-cyan-300 drop-shadow-lg">
+                      <p className="mt-1 text-3xl font-black text-white drop-shadow-lg">
                         {semester.isCurrent ? semester.totalCredits : semester.earnedCredits}
                       </p>
                     </div>
@@ -513,7 +513,7 @@ export default function RecordsPage() {
                           </div>
                         </td>
                         <td className="px-4 py-4 text-center">
-                          <span className="inline-block rounded-lg bg-blue-100 px-3 py-1.5 text-sm font-bold text-blue-700">
+                          <span className="inline-block rounded-lg bg-indigo-100 px-3 py-1.5 text-sm font-bold text-indigo-700">
                             Credit
                           </span>
                         </td>
@@ -523,7 +523,7 @@ export default function RecordsPage() {
                               {getEnrollmentStatusText(course.enrollmentStatus)}
                             </span>
                           ) : (
-                            <span className="inline-block rounded-lg bg-emerald-100 px-3 py-1.5 text-sm font-bold text-emerald-700">
+                            <span className="inline-block rounded-lg bg-indigo-100 px-3 py-1.5 text-sm font-bold text-indigo-700">
                               Enrolled
                             </span>
                           )}
@@ -572,11 +572,11 @@ export default function RecordsPage() {
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-slate-500">Earned Credits</p>
-                        <p className="text-xl font-bold text-emerald-600">{semester.earnedCredits}</p>
+                        <p className="text-xl font-bold text-indigo-600">{semester.earnedCredits}</p>
                       </div>
                       <div>
                         <p className="text-xs font-semibold text-slate-500">Cumul. Earned Credits</p>
-                        <p className="text-xl font-bold text-purple-600">{semester.earnedCredits}</p>
+                        <p className="text-xl font-bold text-indigo-600">{semester.earnedCredits}</p>
                       </div>
                     </div>
                     <div className="text-right">
