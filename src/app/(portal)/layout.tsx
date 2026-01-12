@@ -50,7 +50,7 @@ export default function PortalLayout({ children }: PortalLayoutProps) {
         pathname={pathname}
       />
       <main
-        className="flex-1 transition-[margin] duration-300"
+        className="flex-1 bg-slate-50 transition-[margin] duration-300"
         style={{ marginLeft: collapsed ? "5rem" : "16rem" }}
       >
         <div className="mx-auto w-full max-w-7xl px-8 pb-20 pt-8">{children}</div>
@@ -69,7 +69,7 @@ type SidebarProps = {
 function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
   return (
     <nav
-      className={`fixed left-0 top-0 h-screen border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
+      className={`fixed left-0 top-0 bottom-0 h-full border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
         collapsed ? "w-20" : "w-64"
       }`}
     >

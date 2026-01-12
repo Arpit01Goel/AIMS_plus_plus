@@ -212,24 +212,24 @@ const getEnrollmentStatusText = (status: EnrollmentStatus) => {
 };
 
 const getGradeColor = (grade: Grade) => {
-  if (grade === "A") return "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-200";
-  if (grade === "A-") return "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-100";
-  if (grade === "B") return "bg-gradient-to-br from-indigo-400 to-indigo-500 text-white shadow-lg shadow-indigo-200";
-  if (grade === "B-") return "bg-gradient-to-br from-indigo-300 to-indigo-400 text-white shadow-lg shadow-indigo-200";
-  if (grade === "C") return "bg-gradient-to-br from-slate-500 to-slate-600 text-white shadow-lg shadow-slate-200";
-  if (grade === "C-") return "bg-gradient-to-br from-slate-600 to-slate-700 text-white shadow-lg shadow-slate-200";
-  if (["D", "F"].includes(grade)) return "bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-lg shadow-slate-200";
-  if (grade === "P") return "bg-gradient-to-br from-indigo-400 to-indigo-500 text-white shadow-lg shadow-indigo-100";
-  if (grade === "") return "bg-gradient-to-br from-slate-300 to-slate-400 text-white shadow-lg shadow-slate-100";
-  return "bg-gradient-to-br from-slate-400 to-slate-500 text-white shadow-lg shadow-slate-100";
+  if (grade === "A") return "bg-indigo-600 text-white";
+  if (grade === "A-") return "bg-indigo-500 text-white";
+  if (grade === "B") return "bg-blue-500 text-white";
+  if (grade === "B-") return "bg-blue-400 text-white";
+  if (grade === "C") return "bg-slate-500 text-white";
+  if (grade === "C-") return "bg-slate-600 text-white";
+  if (["D", "F"].includes(grade)) return "bg-slate-700 text-white";
+  if (grade === "P") return "bg-blue-500 text-white";
+  if (grade === "") return "bg-slate-300 text-white";
+  return "bg-slate-400 text-white";
 };
 
 const getAttendanceColor = (attendance: number) => {
-  if (attendance >= 95) return "text-indigo-600 font-bold";
-  if (attendance >= 90) return "text-indigo-600 font-semibold";
-  if (attendance >= 85) return "text-indigo-600 font-medium";
+  if (attendance >= 95) return "text-green-600 font-semibold";
+  if (attendance >= 90) return "text-green-600 font-medium";
+  if (attendance >= 85) return "text-blue-600 font-medium";
   if (attendance >= 75) return "text-slate-600 font-medium";
-  return "text-slate-700 font-bold";
+  return "text-slate-700 font-medium";
 };
 
 export default function RecordsPage() {
@@ -303,52 +303,43 @@ export default function RecordsPage() {
   return (
     <div className="space-y-6">
       {/* Alert Banner */}
-      <div className="rounded-xl border-l-4 border-indigo-500 bg-gradient-to-r from-indigo-50 to-slate-50 p-4 shadow-sm">
+      {/* <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-indigo-900">
-              <span className="font-bold">NOTE:</span> Some of the grades shown here may be pending approval by the senate. The records confirmed by the academic section will take precedence over anything shown here.
+            <p className="text-sm text-slate-700">
+              <span className="font-semibold">NOTE:</span> Some of the grades shown here may be pending approval by the senate. The records confirmed by the academic section will take precedence over anything shown here.
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Header with CGPA */}
-      <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-800 p-8 shadow-2xl shadow-indigo-300">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 p-8 shadow-lg">
         <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-white/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
-                Academic Performance
-              </span>
-              <span className="rounded-lg bg-indigo-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg">
-                {records.totalCredits} Credits
-              </span>
-            </div>
-            <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-white drop-shadow-lg">
-              Student Academic Records
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              Academic Records
             </h1>
-            <p className="mt-2 text-sm font-medium text-white/90">
+            <p className="mt-2 text-indigo-100">
               Complete academic history and performance metrics
             </p>
           </div>
-          <div className="text-right">
-            <div className="rounded-2xl bg-white/10 px-6 py-4 backdrop-blur-md">
-              <p className="text-xs font-bold uppercase tracking-wider text-white/80">Cumulative GPA</p>
-              <p className="mt-2 bg-gradient-to-br from-white to-indigo-100 bg-clip-text text-6xl font-black text-transparent drop-shadow-2xl">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <div className="text-sm text-indigo-100">Cumulative GPA</div>
+              <div className="text-2xl font-bold text-white">
                 {records.cgpa.toFixed(2)}
-              </p>
-              <div className="mt-2 flex items-center justify-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                ))}
+              </div>
+            </div>
+            <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
+              <div className="text-sm text-indigo-100">Total Credits</div>
+              <div className="text-2xl font-bold text-white">
+                {records.totalCredits}
               </div>
             </div>
           </div>
@@ -356,24 +347,24 @@ export default function RecordsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-3 rounded-2xl border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 via-slate-50 to-slate-50 p-2 shadow-lg">
+      <div className="flex gap-2 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
         <button
           onClick={() => setActiveTab("main")}
-          className={`flex-1 rounded-xl px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
+          className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
             activeTab === "main"
-              ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xl shadow-indigo-300"
-              : "text-slate-600 hover:bg-white/50"
+              ? "bg-gradient-to-r from-indigo-900 to-indigo-700 text-white shadow-sm"
+              : "text-slate-700 hover:bg-slate-50"
           }`}
         >
-          Main Program
+          Major
         </button>
         {minorProgram && (
           <button
             onClick={() => setActiveTab("minor")}
-            className={`flex-1 rounded-xl px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               activeTab === "minor"
-                ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xl shadow-indigo-300"
-                : "text-slate-600 hover:bg-white/50"
+                ? "bg-gradient-to-r from-indigo-900 to-indigo-700 text-white shadow-sm"
+                : "text-slate-700 hover:bg-slate-50"
             }`}
           >
             Minor
@@ -382,10 +373,10 @@ export default function RecordsPage() {
         {concentrationProgram && (
           <button
             onClick={() => setActiveTab("concentration")}
-            className={`flex-1 rounded-xl px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
+            className={`flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
               activeTab === "concentration"
-                ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-xl shadow-indigo-300"
-                : "text-slate-600 hover:bg-white/50"
+                ? "bg-gradient-to-r from-indigo-900 to-indigo-700 text-white shadow-sm"
+                : "text-slate-700 hover:bg-slate-50"
             }`}
           >
             Concentration
@@ -396,99 +387,90 @@ export default function RecordsPage() {
       {/* Grade Records */}
       <div className="space-y-6">
         {/* Program Title */}
-        <div className="rounded-2xl border-2 border-indigo-200 bg-gradient-to-br from-white via-indigo-50 to-slate-50 p-6 shadow-xl">
-          <h2 className="text-2xl font-bold text-indigo-900">{programTitle}</h2>
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h2 className="text-xl font-bold text-slate-900">{programTitle}</h2>
         </div>
 
         {/* Semester Records */}
         {displaySemesters.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-            <p className="text-lg font-medium text-slate-500">No records available</p>
+          <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
+            <p className="text-sm font-medium text-slate-600">No records available</p>
           </div>
         ) : (
           displaySemesters.map((semester, semIndex) => (
             <div
               key={semIndex}
-              className="overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-xl"
+              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
             >
               {/* Semester Header */}
-              <div className={`border-b-2 border-slate-200 px-6 py-5 ${
+              <div className={`border-b border-slate-200 px-6 py-4 ${
                 semester.isCurrent 
-                  ? "bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700" 
-                  : "bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800"
+                  ? "bg-gradient-to-r from-indigo-900 to-indigo-700" 
+                  : "bg-slate-200"
               }`}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="rounded-xl bg-white/20 px-4 py-2 backdrop-blur-sm">
-                      <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h2 className={`text-xl font-bold ${
+                        semester.isCurrent ? "text-white" : "text-black"
+                      }`}>
+                        {semester.semesterCode}
+                      </h2>
+                      {semester.isCurrent && (
+                        <span className="rounded bg-white px-2 py-1 text-xs font-semibold text-indigo-900">
+                          Current
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-black uppercase tracking-wide text-white drop-shadow-lg">
-                          {semester.semesterCode}
-                        </h2>
-                        {semester.isCurrent && (
-                          <span className="rounded-lg bg-white px-3 py-1 text-xs font-bold uppercase tracking-wider text-indigo-600 shadow-lg">
-                            Current
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm font-semibold text-white/90">
-                        Academic Session: {semester.semesterName}
-                      </p>
-                    </div>
+                    <p className={`mt-1 text-sm ${
+                      semester.isCurrent ? "text-indigo-100" : "text-black/90"
+                    }`}>
+                      {semester.semesterName}
+                    </p>
                   </div>
-                  <div className="flex gap-4">
-                    {!semester.isCurrent && (
-                      <div className="rounded-xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
-                        <p className="text-xs font-bold uppercase tracking-wider text-white/80">SGPA</p>
-                        <p className="mt-1 text-3xl font-black text-white drop-shadow-lg">
-                          {semester.sgpa.toFixed(2)}
+                  {semester.isCurrent && (
+                    <div className="flex gap-3">
+                      <div className="rounded-lg bg-white/10 px-4 py-2 text-center backdrop-blur-sm">
+                        <p className="text-xs text-white/90">CGPA</p>
+                        <p className="mt-1 text-xl font-bold text-white">
+                          {semester.cgpa.toFixed(2)}
                         </p>
                       </div>
-                    )}
-                    <div className="rounded-xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
-                      <p className="text-xs font-bold uppercase tracking-wider text-white/80">CGPA</p>
-                      <p className="mt-1 text-3xl font-black text-white drop-shadow-lg">
-                        {semester.cgpa.toFixed(2)}
-                      </p>
+                      <div className="rounded-lg bg-white/10 px-4 py-2 text-center backdrop-blur-sm">
+                        <p className="text-xs text-white/90">Credits</p>
+                        <p className="mt-1 text-xl font-bold text-white">
+                          {semester.totalCredits}
+                        </p>
+                      </div>
                     </div>
-                    <div className="rounded-xl bg-white/10 px-5 py-3 text-center backdrop-blur-md">
-                      <p className="text-xs font-bold uppercase tracking-wider text-white/80">Credits</p>
-                      <p className="mt-1 text-3xl font-black text-white drop-shadow-lg">
-                        {semester.isCurrent ? semester.totalCredits : semester.earnedCredits}
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
               {/* Course Table */}
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full table-fixed">
                   <thead>
-                    <tr className="border-b-2 border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
-                      <th className="px-4 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-700">
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th className="w-16 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                         S#
                       </th>
-                      <th className="px-4 py-4 text-left text-xs font-black uppercase tracking-wider text-slate-700">
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                         Course
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-black uppercase tracking-wider text-slate-700">
+                      <th className="w-24 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                         Enrol.
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-black uppercase tracking-wider text-slate-700">
+                      <th className="w-40 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                         Enrol. Status
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-black uppercase tracking-wider text-slate-700">
+                      <th className="w-32 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                         Course Cat.
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-black uppercase tracking-wider text-slate-700">
+                      <th className="w-24 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                         Grade
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-black uppercase tracking-wider text-slate-700">
+                      <th className="w-24 px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                         Attd.
                       </th>
                     </tr>
@@ -497,62 +479,58 @@ export default function RecordsPage() {
                     {semester.courses.map((course, courseIndex) => (
                       <tr
                         key={courseIndex}
-                        className="group border-b border-slate-100 transition-colors hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50"
+                        className="border-b border-slate-100 transition-colors hover:bg-slate-50"
                       >
-                        <td className="px-4 py-4 text-center font-bold text-slate-600">
+                        <td className="px-4 py-3 text-center text-sm text-slate-600">
                           {courseIndex + 1}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-4 py-3">
                           <div>
-                            <p className="font-mono text-sm font-bold text-indigo-600">
+                            <p className="text-sm font-semibold text-slate-900">
                               {course.courseCode}
                             </p>
-                            <p className="mt-1 text-xs font-medium text-slate-700">
+                            <p className="mt-1 text-xs text-slate-600">
                               {course.courseName}
                             </p>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-center">
-                          <span className="inline-block rounded-lg bg-indigo-100 px-3 py-1.5 text-sm font-bold text-indigo-700">
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-xs font-medium text-slate-700">
                             Credit
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-center">
+                        <td className="px-4 py-3 text-center">
                           {course.enrollmentStatus ? (
-                            <span className={`inline-block rounded-lg px-3 py-1.5 text-sm font-bold ${getEnrollmentStatusColor(course.enrollmentStatus)}`}>
+                            <span className="text-xs font-medium text-slate-700">
                               {getEnrollmentStatusText(course.enrollmentStatus)}
                             </span>
                           ) : (
-                            <span className="inline-block rounded-lg bg-indigo-100 px-3 py-1.5 text-sm font-bold text-indigo-700">
+                            <span className="text-xs font-medium text-slate-700">
                               Enrolled
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-4 text-center">
-                          <span className={`inline-block rounded-lg border-2 px-3 py-1.5 text-xs font-bold ${getCategoryColor(course.category)}`}>
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-xs font-medium text-slate-700">
                             {course.category}
                           </span>
                         </td>
-                        <td className="px-4 py-4 text-center">
+                        <td className="px-4 py-3 text-center">
                           {course.grade === "" ? (
-                            <span className="text-sm font-medium text-slate-400">-</span>
+                            <span className="text-sm text-slate-400">-</span>
                           ) : (
-                            <span
-                              className={`inline-block rounded-xl px-4 py-2 text-lg font-black ${getGradeColor(
-                                course.grade
-                              )}`}
-                            >
+                            <span className="text-sm font-semibold text-slate-900">
                               {course.grade}
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-4 text-center">
+                        <td className="px-4 py-3 text-center">
                           {course.attendance > 0 ? (
-                            <span className={`text-lg ${getAttendanceColor(course.attendance)}`}>
+                            <span className="text-sm text-slate-900">
                               {course.attendance}%
                             </span>
                           ) : (
-                            <span className="text-sm font-medium text-slate-400">-</span>
+                            <span className="text-sm text-slate-400">-</span>
                           )}
                         </td>
                       </tr>
@@ -563,25 +541,25 @@ export default function RecordsPage() {
 
               {/* Semester Summary Footer */}
               {!semester.isCurrent && (
-                <div className="border-t-2 border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4">
+                <div className="border-t border-slate-200 bg-slate-50 px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex gap-6">
                       <div>
-                        <p className="text-xs font-semibold text-slate-500">Credits Registered</p>
-                        <p className="text-xl font-bold text-indigo-600">{semester.totalCredits}</p>
+                        <p className="text-xs text-slate-600">Credits Registered</p>
+                        <p className="text-lg font-semibold text-slate-900">{semester.totalCredits}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-slate-500">Earned Credits</p>
-                        <p className="text-xl font-bold text-indigo-600">{semester.earnedCredits}</p>
+                        <p className="text-xs text-slate-600">Earned Credits</p>
+                        <p className="text-lg font-semibold text-slate-900">{semester.earnedCredits}</p>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-slate-500">Cumul. Earned Credits</p>
-                        <p className="text-xl font-bold text-indigo-600">{semester.earnedCredits}</p>
+                        <p className="text-xs text-slate-600">Cumul. Earned Credits</p>
+                        <p className="text-lg font-semibold text-slate-900">{semester.earnedCredits}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-semibold text-slate-500">Semester Performance</p>
-                      <p className="text-2xl font-black text-indigo-600">
+                      <p className="text-xs text-slate-600">Semester Performance</p>
+                      <p className="text-lg font-semibold text-slate-900">
                         SGPA: {semester.sgpa.toFixed(2)} | CGPA: {semester.cgpa.toFixed(2)}
                       </p>
                     </div>

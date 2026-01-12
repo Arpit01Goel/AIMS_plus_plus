@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type StudentProfile = {
   // Personal Information
@@ -86,7 +86,7 @@ export default function ProfilePage() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   // Load profile data
-  useState(() => {
+  useEffect(() => {
     const loadProfile = async () => {
       try {
         const data = await fetchStudentProfile();
@@ -98,7 +98,7 @@ export default function ProfilePage() {
       }
     };
     loadProfile();
-  });
+  }, []);
 
   const handleDownloadIDCard = () => {
     // TODO: Implement PDF generation and download
