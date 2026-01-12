@@ -174,7 +174,7 @@ export default function FeesPage() {
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Academic Session
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Amount
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
@@ -183,10 +183,10 @@ export default function FeesPage() {
                 <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Bank
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Receipt Doc
                 </th>
-                <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-600">
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Actions
                 </th>
               </tr>
@@ -213,7 +213,7 @@ export default function FeesPage() {
                       <div className="text-sm font-medium text-slate-900">{receipt.academicSession}</div>
                       <div className="text-xs text-slate-500">Uploaded: {receipt.uploadedDate}</div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
+                    <td className="whitespace-nowrap px-6 py-4 text-right">
                       <div className="text-sm font-semibold text-slate-900">₹{receipt.amount.toLocaleString('en-IN')}</div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4">
@@ -223,7 +223,7 @@ export default function FeesPage() {
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="text-sm text-slate-900">{receipt.bank}</div>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4">
+                    <td className="whitespace-nowrap px-6 py-4 text-center">
                       <button
                         onClick={() => handleDownload(receipt)}
                         className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
@@ -234,8 +234,8 @@ export default function FeesPage() {
                         View
                       </button>
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="whitespace-nowrap px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleDownload(receipt)}
                           className="rounded-lg p-2 text-indigo-600 transition hover:bg-indigo-50"

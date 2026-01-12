@@ -184,13 +184,13 @@ export default function CalenderPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 p-8 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 p-8 shadow-lg">
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
               Academic Calendar
             </h1>
-            <p className="text-sm text-indigo-100">
+            <p className="mt-2 text-indigo-100">
               Track registration, classes, assessments, and results
             </p>
           </div>
