@@ -1,0 +1,145 @@
+Read this once and remind later when backend is made:-
+
+We’ll add a simple, centralized role field to users, thread it through NextAuth’s JWT/session, then enforce it at the routing and API boundaries so each role sees only what they should.
+
+Steps
+Define a role model
+
+Decide canonical roles (user/student, instructor, advisor, admin).
+Plan a persistent user store (e.g., DB user table) with a role column as described in AUTHENTICATION_SETUP.md’s “Database Integration” notes.
+Extend NextAuth types and callbacks
+
+In next-auth.d.ts, add role to User, Session.user, and JWT.
+In auth.ts, update jwt and session callbacks to read user.role from the DB and copy it onto token.role and session.user.role.
+Attach roles during sign-in
+
+In src/app/api/auth/[...nextauth]/route.ts, for both Google and credentials flows, ensure you:
+Look up or create the user by email, including role.
+Pass that user (with role) into NextAuth so callbacks can persist it in JWT/session.
+Protect portal routes with middleware
+
+Add a root middleware.ts protecting all “portal” URLs (e.g., /dashboard, /courses, /fees, etc.).
+Middleware should:
+Redirect unauthenticated users to /login.
+Optionally enforce minimum role (e.g., block non-admins from future admin-only paths).
+Add role-aware layouts and navigation
+
+In src/app/(portal)/layout.tsx/layout.tsx), fetch the session and:
+Redirect to /login if no user.
+Use session.user.role to show/hide sidebar links (e.g., future instructor/advisor/admin sections).
+Plan separate route groups later (e.g., (instructor), (advisor), (admin)) if each needs distinct portals.
+Enforce roles in future APIs
+
+For any new portal-related API routes (e.g., under api), always:
+Read the server session/JWT.
+Check role before returning data or performing mutations, mirroring the same rules as middleware.
+Further Considerations
+How strict should we be initially: only “must be logged in” for all portal pages, or do you already know which sections are instructor/advisor/admin-only?
+Do you prefer a single role field or a more flexible roles/permissions list (more work now but future-proof)?
+Once you confirm, I can refine this into a role matrix (which role can access which current pages) before you or another agent starts implementing.
+Plan: Backend (Prisma + Supabase + APIs) for Current Student Portal
+We’ll introduce a Prisma schema backed by Supabase Postgres, wire it into NextAuth and OTP/reset, then stand up focused /api/* routes for the existing student-facing UI (no extra role UIs yet).
+
+------------------------------------------------------------------------------
+
+Steps
+Set up Prisma + Supabase base
+
+Configure Supabase Postgres and DATABASE_URL, create prisma/schema.prisma, and add a shared Prisma client helper in src/lib/db.ts for all server-side data access.
+
+Model core identity and student profile
+
+In schema.prisma, define User (with email, passwordHash, role enum: STUDENT/INSTRUCTOR/ADVISOR/ADMIN) and Student (entry number, program/department, profile fields mirrored from src/app/(portal)/profile/page.tsx/profile/page.tsx)).
+
+Add supporting Program, Department, and Instructor models so Courses, Records, and Feedback have clean relations.
+
+Persist auth, OTP, and password resets
+
+Update NextAuth options in auth.ts and src/app/api/auth/[...nextauth]/route.ts so the credentials and Google flows read/write User (and create Student on first login if needed).
+
+Replace in-memory OTP storage in otp.ts and its usage in route.ts / route.ts with a Prisma-backed OTP table, and update reset-password/route.ts to change User.passwordHash.
+
+Design academic and enrollment models
+
+In schema.prisma, add AcademicSession, Course, CourseOffering, CourseMeeting, and Enrollment models matching the shapes used in courses/page.tsx/courses/page.tsx), timetable/page.tsx/timetable/page.tsx), and records/page.tsx/records/page.tsx).
+
+Include fields for ltpsc, credits, slot, status, category, grade, attendance, and session codes (2025-II) so Records, Timetable, and Courses can all be powered from the same data.
+
+Implement student-centric API routes
+
+Add /api/profile to serve and update the profile view expected by profile/page.tsx/profile/page.tsx) (joining User, Student, Program, Department).
+
+Add /api/records, /api/student/timetable, /api/courses, and /api/courses/enrolled to return the exact data shapes currently hard-coded or marked as TODO in records/page.tsx/records/page.tsx), timetable/page.tsx/timetable/page.tsx), and courses/page.tsx/courses/page.tsx), using Enrollment + CourseOffering + CourseMeeting.
+
+Add /api/enrollments (POST/PATCH/DELETE) for the Courses page to toggle “Enrolled” state, updating Enrollment and derived counts.
+
+Add fees, feedback, and calendar APIs
+
+Introduce FeeReceipt model (and map to Supabase Storage paths) to back /api/fees (GET/POST/DELETE) for fees/page.tsx/fees/page.tsx).
+
+Add FeedbackQuestion and CourseFeedbackResponse models, then implement /api/feedback/submit and /api/feedback/courses as expected by feedback/page.tsx/feedback/page.tsx).
+
+Add AcademicEvent model and /api/calendar/events to replace the hard-coded calendar data in calender/page.tsx/calender/page.tsx).
+
+Thread roles and auth into APIs (student-only for now)
+
+Extend NextAuth types in next-auth.d.ts to include role and studentId, and update JWT/session callbacks in auth.ts to populate them from Prisma.
+
+In each /api/* route above, use NextAuth’s server helpers to read the session, enforce that role === 'STUDENT' (or at least authenticated), and scope queries to the current studentId.
+
+Further Considerations
+Do you want to create the initial Prisma schema only for student-related use cases first (User/Student/Course/Enrollment/Fees/Feedback) and add instructor/advisor/admin models later, or model all roles up-front?
+For fee receipts, would you prefer direct Supabase Storage uploads from the browser (with signed URLs) or server-side uploads via an API route?
+GPT-5.1 • 1x
+
+-----------------------------------------------------------------------------------------
+
+
+Plan: Model All Roles Up-Front (Student/Instructor/Advisor/Admin)
+We’ll design a role-aware schema and APIs from day one, even though only the student-facing UI is active initially. Non-student roles get full DB representation now, so later UIs just plug in.
+
+Steps
+Define role and core identity in Prisma
+
+In schema.prisma, define a User model with a role enum (STUDENT, INSTRUCTOR, ADVISOR, ADMIN) and shared fields (email, passwordHash, name, image, createdAt/updatedAt).
+
+Add one-to-one “profile” models per role: Student (entryNumber, program/department, academic info), Instructor (title, department, official email), Advisor (link to department/program or cohort), and optionally AdminProfile (for audit/permissions metadata).
+
+Align auth and NextAuth with multi-role users
+
+In auth.ts, update the credentials and Google flows to always resolve a User with a role plus its profile (e.g., Student vs Instructor) using Prisma.
+
+Extend types in next-auth.d.ts so User, JWT, and Session.user all carry role and a role-specific ID (e.g., studentId, instructorId, advisorId).
+
+Ensure JWT/session callbacks set these fields consistently so every API can branch on role without extra lookups.
+
+Design shared academic models with role-neutral relations
+
+Model Department, Program, AcademicSession, Course, CourseOffering, CourseMeeting, and Enrollment so they’re not student-specific:
+
+Student relates to Enrollment;
+Instructor relates to CourseOffering (via a join table);
+Advisor relates to Student (advisor-of record) and/or Program.
+Add future-facing entities now where low risk: AdvisingAppointment (Student ↔ Advisor), CourseApprovalRequest (for add/drop/overload flows), with basic fields and statuses but no UI yet.
+
+Implement student APIs with role checks baked in
+
+Build the earlier planned student APIs (/api/profile, /api/records, /api/student/timetable, /api/courses, /api/courses/enrolled, /api/enrollments, /api/fees, /api/feedback/*, /api/calendar/events) backed by User+Student and the academic models.
+
+In each handler, check session.user.role === 'STUDENT' and use session.user.studentId to scope queries, while keeping the structure flexible enough for instructor/advisor/admin endpoints to reuse the same models.
+
+Prepare instructor/advisor/admin backend surfaces (no UI yet)
+
+Define “admin-only” and “faculty/advisor-only” API namespaces up-front (e.g., /api/admin/*, /api/faculty/*, /api/advisor/*) with minimal placeholders: list courses you teach, list your advisees, view pending approvals, etc.
+
+Add authorization rules in those routes based on role and the linked profile IDs (instructorId, advisorId), even if they temporarily return dummy data or very simple queries.
+
+Integrate OTP/reset and auditing with multi-role users
+
+Use a single OTP (and optional PasswordResetToken) model keyed by email/userId, not tied to student only, so any role can reset passwords through the same flows in route.ts, /verify-otp, and /reset-password.
+
+Optionally add basic audit fields (createdByUserId, updatedByUserId) on sensitive tables (Enrollment, FeeReceipt, AdvisingAppointment) so admin actions are traceable once those UIs exist.
+
+Further Considerations
+Should “advisor” be a separate profile, or usually the same person and table as “instructor” with role = INSTRUCTOR plus an isAdvisor flag and advisor-specific relations?
+For admin, is a simple role = ADMIN on User sufficient, or do you foresee multiple admin levels (e.g., super-admin vs department-admin) that need a more detailed permissions model now?

@@ -17,14 +17,14 @@ import {
 } from "lucide-react";
 
 const navTabs: NavTab[] = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Calender", icon: Calendar, href: "/calender" },
-  { name: "Courses", icon: BookOpen, href: "/courses" },
-  { name: "Fees", icon: DollarSign, href: "/fees" },
-  { name: "Feedback", icon: MessageSquare, href: "/feedback" },
-  { name: "Profile", icon: User, href: "/profile" },
-  { name: "Records", icon: FileText, href: "/records" },
-  { name: "Timetable", icon: Clock, href: "/timetable" },
+  { name: "Dashboard", icon: LayoutDashboard, href: "/student/dashboard" },
+  { name: "Calender", icon: Calendar, href: "/student/calender" },
+  { name: "Courses", icon: BookOpen, href: "/student/courses" },
+  { name: "Fees", icon: DollarSign, href: "/student/fees" },
+  { name: "Feedback", icon: MessageSquare, href: "/student/feedback" },
+  { name: "Profile", icon: User, href: "/student/profile" },
+  { name: "Records", icon: FileText, href: "/student/records" },
+  { name: "Timetable", icon: Clock, href: "/student/timetable" },
 ];
 
 type NavTab = {
