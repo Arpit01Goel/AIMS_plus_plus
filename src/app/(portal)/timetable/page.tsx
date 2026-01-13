@@ -23,7 +23,7 @@ const TIME_SLOTS = [
   { start: '10:00', end: '10:50', label: '10:00 - 10:50' },
   { start: '11:00', end: '11:50', label: '11:00 - 11:50' },
   { start: '12:00', end: '12:50', label: '12:00 - 12:50' },
-  { start: '13:00', end: '13:50', label: 'Lunch Break', isBreak: true },
+  { start: '13:00', end: '13:50', label: '1:00 - 1:50' },
   { start: '14:00', end: '14:50', label: '2:00 - 2:50' },
   { start: '15:00', end: '15:50', label: '3:00 - 3:50' },
   { start: '16:00', end: '16:50', label: '4:00 - 4:50' },
@@ -210,37 +210,26 @@ export default function TimetablePage() {
             {TIME_SLOTS.map((timeSlot, index) => (
               <tr
                 key={`${timeSlot.start}-${timeSlot.end}`}
-                className={`border-b border-slate-100 ${
-                  timeSlot.isBreak ? 'bg-slate-50' : 'hover:bg-slate-50/50'
-                }`}
+                className="border-b border-slate-100 hover:bg-slate-50/50"
               >
                 <td className="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 text-xs font-medium text-slate-600">
                   {timeSlot.label}
                 </td>
-                {timeSlot.isBreak ? (
-                  <td
-                    colSpan={5}
-                    className="p-3 text-center text-sm font-medium text-slate-500"
-                  >
-                    Lunch Break
-                  </td>
-                ) : (
-                  DAYS.map((day) => {
-                    const courseAtSlot = getCourseAtSlot(day, timeSlot.start);
-                    return (
-                      <td key={day} className="p-2">
-                        {courseAtSlot ? (
-                          <CourseCell
-                            course={courseAtSlot.course}
-                            slot={courseAtSlot.slot}
-                          />
-                        ) : (
-                          <div className="h-16 rounded-lg border border-dashed border-slate-200"></div>
-                        )}
-                      </td>
-                    );
-                  })
-                )}
+                {DAYS.map((day) => {
+                  const courseAtSlot = getCourseAtSlot(day, timeSlot.start);
+                  return (
+                    <td key={day} className="p-2">
+                      {courseAtSlot ? (
+                        <CourseCell
+                          course={courseAtSlot.course}
+                          slot={courseAtSlot.slot}
+                        />
+                      ) : (
+                        <div className="h-16 rounded-lg border border-dashed border-slate-200"></div>
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

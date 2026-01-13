@@ -162,7 +162,7 @@ export default function FeedbackPage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
@@ -175,14 +175,14 @@ export default function FeedbackPage() {
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col items-center justify-center py-12">
           <div className="rounded-full bg-green-100 p-3">
             <svg className="h-12 w-12 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="mt-6 text-2xl font-bold text-slate-900">Feedback Submitted!</h2>
+          <h2 className="mt-6 text-xl font-bold text-slate-900">Feedback Submitted!</h2>
           <p className="mt-2 text-sm text-slate-600">Thank you for your valuable feedback.</p>
         </div>
       </div>
@@ -190,14 +190,23 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Course Feedback</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Help us improve by sharing your experience with the course and instructor.
-        </p>
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 p-8 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              Course Feedback
+            </h1>
+            <p className="mt-2 text-indigo-100">
+              Help us improve by sharing your experience with the course and instructor.
+            </p>
+          </div>
+        </div>
       </div>
 
+      {/* Feedback Form */}
+      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Feedback Type Selection */}
         <div>
@@ -208,10 +217,10 @@ export default function FeedbackPage() {
             <button
               type="button"
               onClick={() => setFeedbackType("mid-sem")}
-              className={`rounded-xl border-2 px-6 py-4 text-center font-medium transition-all ${
+              className={`rounded-lg border px-6 py-3 text-center text-sm font-medium transition-all ${
                 feedbackType === "mid-sem"
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50"
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-900"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
               }`}
             >
               Mid-Semester Feedback
@@ -219,10 +228,10 @@ export default function FeedbackPage() {
             <button
               type="button"
               onClick={() => setFeedbackType("end-sem")}
-              className={`rounded-xl border-2 px-6 py-4 text-center font-medium transition-all ${
+              className={`rounded-lg border px-6 py-3 text-center text-sm font-medium transition-all ${
                 feedbackType === "end-sem"
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                  : "border-slate-200 bg-white text-slate-700 hover:border-indigo-200 hover:bg-indigo-50"
+                  ? "border-indigo-600 bg-indigo-50 text-indigo-900"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
               }`}
             >
               End-Semester Feedback
@@ -240,7 +249,7 @@ export default function FeedbackPage() {
               id="course"
               value={courseCode}
               onChange={(e) => setCourseCode(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               required
             >
               <option value="">Select a course</option>
@@ -263,7 +272,7 @@ export default function FeedbackPage() {
               id="instructor"
               value={instructor}
               onChange={(e) => setInstructor(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
               required
             >
               <option value="">Select an instructor</option>
@@ -282,36 +291,36 @@ export default function FeedbackPage() {
         {/* Rating Questions */}
         {instructor && (
           <div className="animate-fadeIn space-y-6">
-            <h2 className="text-lg font-semibold text-slate-900">Rate Your Experience</h2>
+            <h2 className="text-base font-semibold text-slate-900">Rate Your Experience</h2>
             <p className="text-sm text-slate-600">
               Please rate each statement from 1 (Strongly Disagree) to 5 (Strongly Agree)
             </p>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               {FEEDBACK_QUESTIONS.map((question, index) => (
-                <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="mb-4 text-sm font-medium text-slate-900">
+                <div key={index} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <p className="mb-3 text-sm font-medium text-slate-900">
                     {index + 1}. {question}
                   </p>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-medium text-slate-500">Strongly Disagree</span>
+                    <span className="text-xs font-medium text-slate-600">Strongly Disagree</span>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((rating) => (
                         <button
                           key={rating}
                           type="button"
                           onClick={() => handleRatingChange(index, rating)}
-                          className={`flex h-10 w-10 items-center justify-center rounded-lg border-2 font-semibold transition-all ${
+                          className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-semibold transition-all ${
                             ratings[index] === rating
-                              ? "border-indigo-500 bg-indigo-500 text-white"
-                              : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-indigo-50"
+                              ? "border-indigo-600 bg-indigo-600 text-white"
+                              : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
                           }`}
                         >
                           {rating}
                         </button>
                       ))}
                     </div>
-                    <span className="text-xs font-medium text-slate-500">Strongly Agree</span>
+                    <span className="text-xs font-medium text-slate-600">Strongly Agree</span>
                   </div>
                 </div>
               ))}
@@ -331,7 +340,7 @@ export default function FeedbackPage() {
               onChange={(e) => setComments(e.target.value)}
               rows={4}
               placeholder="Share any additional thoughts or suggestions..."
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             />
           </div>
         )}
@@ -342,9 +351,9 @@ export default function FeedbackPage() {
             <button
               type="submit"
               disabled={!isFormValid}
-              className={`rounded-xl px-8 py-3 font-semibold transition-all ${
+              className={`rounded-lg px-6 py-2.5 text-sm font-semibold transition-all ${
                 isFormValid
-                  ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                  ? "bg-gradient-to-r from-indigo-900 to-indigo-700 text-white hover:from-indigo-800 hover:to-indigo-600"
                   : "cursor-not-allowed bg-slate-200 text-slate-400"
               }`}
             >
@@ -353,6 +362,7 @@ export default function FeedbackPage() {
           </div>
         )}
       </form>
+      </div>
     </div>
   );
 }
