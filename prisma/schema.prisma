@@ -1,0 +1,431 @@
+// Prisma Schema for AIMS++ - Full Role Model
+// Phase 1: Foundation with User, Roles, and Profile Models
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADVISOR
+  ADMIN
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  DROPPED
+  WAITLISTED
+  COMPLETED
+}
+
+enum CourseCategory {
+  CORE
+  ELECTIVE
+  OPEN_ELECTIVE
+  MINOR
+  HONORS
+}
+
+enum EventType {
+  EXAM
+  HOLIDAY
+  REGISTRATION
+  DEADLINE
+  SEMINAR
+  OTHER
+}
+
+enum EventVisibility {
+  STUDENT_ONLY
+  INSTRUCTOR_ONLY
+  ALL
+}
+
+enum OTPPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
+}
+
+// ============================================================================
+// IDENTITY & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?   // Nullable for OAuth-only accounts
+  name         String?
+  image        String?
+  role         Role      @default(STUDENT)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // One-to-one profile relations (based on role)
+  student    Student?
+  instructor Instructor?
+  advisor    Advisor?
+  admin      AdminProfile?
+
+  // Auth-related
+  otpCodes OTPCode[]
+
+  // Audit trail
+  createdEnrollments Enrollment[] @relation("EnrollmentCreatedBy")
+  updatedEnrollments Enrollment[] @relation("EnrollmentUpdatedBy")
+  createdFeeReceipts FeeReceipt[] @relation("FeeReceiptCreatedBy")
+
+  @@index([email])
+  @@index([role])
+}
+
+model OTPCode {
+  id         String     @id @default(cuid())
+  userId     String?
+  email      String
+  code       String
+  purpose    OTPPurpose
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, purpose])
+  @@index([code])
+}
+
+// ============================================================================
+// ROLE-SPECIFIC PROFILES
+// ============================================================================
+
+model Student {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  entryNumber String   @unique // e.g., 2021CSB1234
+  batch       Int? // Year of admission
+  phone       String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program    Program?    @relation(fields: [programId], references: [id])
+  programId  String?
+  department Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+  advisor    Advisor?    @relation("AdvisorStudents", fields: [advisorId], references: [id])
+  advisorId  String?
+
+  // Academic data
+  enrollments         Enrollment[]
+  feeReceipts         FeeReceipt[]
+  feedbackResponses   CourseFeedbackResponse[]
+
+  @@index([entryNumber])
+  @@index([userId])
+  @@index([advisorId])
+}
+
+model Instructor {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  title         String? // Prof., Dr., etc.
+  officialEmail String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department   Department?      @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  // Courses taught
+  courseOfferings CourseOffering[]
+
+  @@index([userId])
+}
+
+model Advisor {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  primaryCohort Int? // Year/batch they primarily advise
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+  program      Program?    @relation(fields: [programId], references: [id])
+  programId    String?
+
+  // Students being advised
+  students Student[] @relation("AdvisorStudents")
+
+  @@index([userId])
+}
+
+model AdminProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  notes     String? // e.g., permissions metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// ORGANIZATIONAL STRUCTURE
+// ============================================================================
+
+model Department {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g., CSE, EE, ME
+  name      String // e.g., Computer Science & Engineering
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  programs    Program[]
+  students    Student[]
+  instructors Instructor[]
+  advisors    Advisor[]
+  courses     Course[]
+
+  @@index([code])
+}
+
+model Program {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g., BTECH-CSE, MTECH-DS
+  name      String // e.g., B.Tech in Computer Science
+  level     String? // e.g., UG, PG, PhD
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  // Relations
+  students Student[]
+  advisors Advisor[]
+
+  @@index([code])
+}
+
+// ============================================================================
+// ACADEMIC SESSIONS & COURSES
+// ============================================================================
+
+model AcademicSession {
+  id        String   @id @default(cuid())
+  code      String   @unique // e.g., 2025-II, 2024-I
+  startDate DateTime
+  endDate   DateTime
+  isCurrent Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  courseOfferings CourseOffering[]
+
+  @@index([isCurrent])
+}
+
+model Course {
+  id        String          @id @default(cuid())
+  code      String          @unique // e.g., CS101, MA201
+  title     String
+  credits   Int
+  ltpsc     String? // e.g., "3-0-0-4" (Lecture-Tutorial-Practical-Self Study-Credits)
+  category  CourseCategory  @default(CORE)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  // Relations
+  offerings         CourseOffering[]
+  feedbackQuestions FeedbackQuestion[]
+
+  @@index([code])
+  @@index([category])
+}
+
+model CourseOffering {
+  id       String @id @default(cuid())
+  capacity Int    @default(60)
+  slot     String? // e.g., "A1", "B2"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  course            Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId          String
+  academicSession   AcademicSession @relation(fields: [academicSessionId], references: [id], onDelete: Cascade)
+  academicSessionId String
+  primaryInstructor Instructor?     @relation(fields: [instructorId], references: [id])
+  instructorId      String?
+
+  // Students and schedule
+  enrollments    Enrollment[]
+  courseMeetings CourseMeeting[]
+
+  @@unique([courseId, academicSessionId])
+  @@index([academicSessionId])
+  @@index([instructorId])
+}
+
+model CourseMeeting {
+  id         String   @id @default(cuid())
+  dayOfWeek  Int // 1=Monday, 7=Sunday
+  startTime  String // e.g., "09:00"
+  endTime    String // e.g., "10:00"
+  location   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  offering   CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  offeringId String
+
+  @@index([offeringId])
+  @@index([dayOfWeek])
+}
+
+// ============================================================================
+// ENROLLMENT & GRADES
+// ============================================================================
+
+model Enrollment {
+  id                   String           @id @default(cuid())
+  status               EnrollmentStatus @default(ENROLLED)
+  grade                String? // e.g., "A", "B+", "F"
+  attendancePercentage Float?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  // Relations
+  student   Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+  offering  CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  offeringId String
+
+  // Audit
+  createdBy   User?   @relation("EnrollmentCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+  updatedBy   User?   @relation("EnrollmentUpdatedBy", fields: [updatedById], references: [id])
+  updatedById String?
+
+  // Feedback
+  feedbackResponses CourseFeedbackResponse[]
+
+  @@unique([studentId, offeringId])
+  @@index([studentId])
+  @@index([offeringId])
+  @@index([status])
+}
+
+// ============================================================================
+// FEES & PAYMENTS
+// ============================================================================
+
+model FeeReceipt {
+  id          String   @id @default(cuid())
+  amount      Float
+  category    String // e.g., "Tuition", "Hostel", "Exam"
+  paidOn      DateTime
+  storagePath String? // Supabase Storage path for receipt file
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId String
+
+  // Audit
+  createdBy   User?   @relation("FeeReceiptCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+
+  @@index([studentId])
+  @@index([paidOn])
+}
+
+// ============================================================================
+// FEEDBACK
+// ============================================================================
+
+model FeedbackQuestion {
+  id           String   @id @default(cuid())
+  text         String
+  questionType String // e.g., "rating", "text", "multiple-choice"
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId String?
+
+  // Responses
+  responses CourseFeedbackResponse[]
+
+  @@index([courseId])
+  @@index([isActive])
+}
+
+model CourseFeedbackResponse {
+  id        String   @id @default(cuid())
+  rating    Int? // For rating-type questions
+  text      String? // For text-type questions
+  createdAt DateTime @default(now())
+
+  // Relations
+  question   FeedbackQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String
+  student    Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId  String
+  enrollment Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  enrollmentId String
+
+  @@unique([questionId, enrollmentId])
+  @@index([studentId])
+  @@index([enrollmentId])
+}
+
+// ============================================================================
+// CALENDAR & EVENTS
+// ============================================================================
+
+model AcademicEvent {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  type        EventType       @default(OTHER)
+  visibility  EventVisibility @default(ALL)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([startDate])
+  @@index([visibility])
+  @@index([type])
+}
