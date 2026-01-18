@@ -65,7 +65,7 @@ type SidebarProps = {
 function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
   return (
     <nav
-      className={`fixed left-0 top-0 bottom-0 h-full border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
+      className={`fixed left-0 top-0 bottom-0 z-50 h-full border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
         collapsed ? "w-20" : "w-64"
       }`}
     >
