@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Users,
@@ -18,6 +19,7 @@ import {
   Menu,
   UserCog,
   Award,
+  LogOut,
 } from "lucide-react";
 
 const navTabs: NavTab[] = [
@@ -97,7 +99,7 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
         </button>
       </div>
 
-      <ul className="mt-6 space-y-1.5 px-4">
+      <ul className="mt-6 space-y-1.5 overflow-y-auto px-4 pb-20 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:bg-transparent" style={{ maxHeight: "calc(100vh - 180px)" }}>
         {tabs.map((tab) => {
           const isActive =
             pathname === tab.href || pathname.startsWith(`${tab.href}/`);
@@ -128,6 +130,21 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
           );
         })}
       </ul>
+
+      <div className="absolute bottom-0 left-0 right-0 border-t border-white/30 bg-indigo-700 p-4">
+        <button
+          onClick={() => signOut({ callbackUrl: '/login' })}
+          className={`group flex items-center justify-center gap-3 rounded-lg border border-indigo-400/30 text-sm font-medium text-indigo-100 transition-colors hover:border-red-400 hover:bg-red-600 hover:text-white ${
+            collapsed
+              ? "mx-auto h-12 w-12"
+              : "mx-auto px-4 py-2.5"
+          }`}
+          title={collapsed ? "Sign Out" : undefined}
+        >
+          <LogOut className="h-5 w-5 shrink-0 text-indigo-200 group-hover:text-white" />
+          {!collapsed && <span className="tracking-tight">Sign Out</span>}
+        </button>
+      </div>
     </nav>
   );
 }

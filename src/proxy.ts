@@ -40,7 +40,7 @@ const ROLE_PORTAL_HOMES: Record<UserRole, string> = {
     ADMIN: '/admin/dashboard',
 };
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     // Find which portal route is being accessed
