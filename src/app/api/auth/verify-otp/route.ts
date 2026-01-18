@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyOTP } from '@/lib/otp';
+import { generateResetToken } from '@/lib/tokens';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,8 +21,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify OTP
-    const result = verifyOTP(email, otp);
+    // Verify OTP from database
+    const result = await verifyOTP(email, otp, 'PASSWORD_RESET');
 
     if (!result.success) {
       return NextResponse.json(
@@ -30,8 +31,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // OTP verified successfully
-    // Generate a temporary token for password reset
+    // OTP verified successfully - generate signed JWT reset token
     const resetToken = generateResetToken(email);
 
     return NextResponse.json({
@@ -47,17 +47,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Generate a temporary reset token (valid for 15 minutes)
-function generateResetToken(email: string): string {
-  const crypto = require('crypto');
-  const payload = JSON.stringify({
-    email,
-    timestamp: Date.now(),
-    expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-  });
-  
-  // In production, use a proper signing mechanism with a secret key
-  return Buffer.from(payload).toString('base64');
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateOTP, storeOTP, hasValidOTP } from '@/lib/otp';
+import { generateOTP, storeOTP } from '@/lib/otp';
 import { sendOTPEmail } from '@/lib/email';
+import { prisma } from '@/lib/db';
 
 const ALLOWED_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN || 'iitrpr.ac.in';
 const RATE_LIMIT_MINUTES = 1; // Minimum time between OTP requests
@@ -28,18 +29,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user exists in database
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: 'No account found with this email address' },
+        { status: 404 }
+      );
+    }
+
     // Check rate limiting
     const lastRequestTime = rateLimitMap.get(email);
     if (lastRequestTime) {
       const timeSinceLastRequest = Date.now() - lastRequestTime;
       const waitTime = RATE_LIMIT_MINUTES * 60 * 1000;
-      
+
       if (timeSinceLastRequest < waitTime) {
         const remainingSeconds = Math.ceil((waitTime - timeSinceLastRequest) / 1000);
         return NextResponse.json(
-          { 
-            success: false, 
-            message: `Please wait ${remainingSeconds} seconds before requesting a new OTP` 
+          {
+            success: false,
+            message: `Please wait ${remainingSeconds} seconds before requesting a new OTP`
           },
           { status: 429 }
         );
@@ -49,8 +63,16 @@ export async function POST(request: NextRequest) {
     // Generate OTP
     const otp = generateOTP();
 
-    // Store OTP
-    storeOTP(email, otp);
+    // Store OTP in database
+    try {
+      await storeOTP(email, otp, 'PASSWORD_RESET');
+    } catch (dbError) {
+      console.error('Database error storing OTP:', dbError);
+      return NextResponse.json(
+        { success: false, message: 'Failed to generate OTP. Please try again.' },
+        { status: 500 }
+      );
+    }
 
     // Send OTP via email
     try {
@@ -58,9 +80,9 @@ export async function POST(request: NextRequest) {
     } catch (emailError) {
       console.error('Email sending failed:', emailError);
       return NextResponse.json(
-        { 
-          success: false, 
-          message: 'Failed to send OTP email. Please check your email configuration.' 
+        {
+          success: false,
+          message: 'Failed to send OTP email. Please check your email configuration.'
         },
         { status: 500 }
       );

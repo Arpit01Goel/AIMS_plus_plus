@@ -11,26 +11,26 @@ interface RouteConfig {
 }
 
 const ROUTE_CONFIGS: RouteConfig[] = [
-  {
-    pattern: /^\/student/,
-    requiredRole: 'STUDENT',
-    portalHome: '/student/dashboard',
-  },
-  {
-    pattern: /^\/instructor/,
-    requiredRole: 'INSTRUCTOR',
-    portalHome: '/instructor/dashboard',
-  },
-  {
-    pattern: /^\/advisor/,
-    requiredRole: 'ADVISOR',
-    portalHome: '/advisor/dashboard',
-  },
-  {
-    pattern: /^\/admin/,
-    requiredRole: 'ADMIN',
-    portalHome: '/admin/dashboard',
-  },
+    {
+        pattern: /^\/student/,
+        requiredRole: 'STUDENT',
+        portalHome: '/student/dashboard',
+    },
+    {
+        pattern: /^\/instructor/,
+        requiredRole: 'INSTRUCTOR',
+        portalHome: '/instructor/dashboard',
+    },
+    {
+        pattern: /^\/advisor/,
+        requiredRole: 'ADVISOR',
+        portalHome: '/advisor/dashboard',
+    },
+    {
+        pattern: /^\/admin/,
+        requiredRole: 'ADMIN',
+        portalHome: '/admin/dashboard',
+    },
 ];
 
 const ROLE_PORTAL_HOMES: Record<UserRole, string> = {

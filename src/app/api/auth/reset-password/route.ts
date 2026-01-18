@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { verifyResetToken } from '@/lib/tokens';
+import { prisma } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,40 +23,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Decode and verify reset token
-    let tokenData;
-    try {
-      const decoded = Buffer.from(resetToken, 'base64').toString('utf-8');
-      tokenData = JSON.parse(decoded);
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid reset token' },
-        { status: 400 }
-      );
-    }
+    // Verify and decode reset token
+    const tokenData = verifyResetToken(resetToken);
 
-    // Check token expiration
-    if (Date.now() > tokenData.expires) {
+    if (!tokenData) {
       return NextResponse.json(
-        { success: false, message: 'Reset token has expired. Please request a new OTP.' },
+        { success: false, message: 'Invalid or expired reset token' },
         { status: 400 }
       );
     }
 
     const { email } = tokenData;
 
+    // Verify user exists
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    // TODO: Update password in database
-    // Example:
-    // await db.user.update({
-    //   where: { email },
-    //   data: { password: hashedPassword }
-    // });
+    // Update password in database
+    await prisma.user.update({
+      where: { email },
+      data: { passwordHash: hashedPassword },
+    });
 
     console.log(`Password reset successful for: ${email}`);
-    console.log(`New hashed password: ${hashedPassword}`);
 
     return NextResponse.json({
       success: true,
