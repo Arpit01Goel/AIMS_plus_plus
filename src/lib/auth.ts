@@ -26,11 +26,11 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Missing credentials');
+          throw new Error('MissingCredentials');
         }
 
         if (!credentials.email.endsWith(`@${ALLOWED_DOMAIN}`)) {
-          throw new Error(`Only @${ALLOWED_DOMAIN} email addresses are allowed`);
+          throw new Error('InvalidDomain');
         }
 
         const user = await prisma.user.findUnique({
@@ -39,13 +39,13 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.passwordHash) {
-          throw new Error('Invalid email');
+          throw new Error('InvalidCredentials');
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
         if (!isValid) {
-          throw new Error('Invalid password');
+          throw new Error('InvalidCredentials');
         }
 
         return {
@@ -74,7 +74,8 @@ export const authOptions: NextAuthOptions = {
         const email = user.email;
 
         if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
-          return false;
+          // Redirect to login with domain error
+          return `/login?error=InvalidDomain`;
         }
 
         const existingUser = await prisma.user.findUnique({
@@ -82,7 +83,8 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!existingUser) {
-          return false;
+          // Redirect to login with user not found error
+          return `/login?error=UserNotFound`;
         }
 
       }

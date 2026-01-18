@@ -20,7 +20,51 @@ export default function LoginPage() {
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam) {
-      setError(decodeURIComponent(errorParam));
+      let errorMessage = "";
+      
+      switch (errorParam) {
+        case "UserNotFound":
+          errorMessage = "Account not found. Please contact your administrator to create your account.";
+          break;
+        case "InvalidDomain":
+          errorMessage = `Only @iitrpr.ac.in email addresses are allowed.`;
+          break;
+        case "MissingCredentials":
+          errorMessage = "Please provide both email and password.";
+          break;
+        case "InvalidCredentials":
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+          break;
+        case "OAuthSignin":
+        case "OAuthCallback":
+          errorMessage = "Google sign-in failed. Please try again or contact support.";
+          break;
+        case "OAuthCreateAccount":
+          errorMessage = "Unable to create account. Please contact administrator.";
+          break;
+        case "EmailCreateAccount":
+          errorMessage = "Unable to create account with this email.";
+          break;
+        case "Callback":
+          errorMessage = "Authentication failed. Please try again.";
+          break;
+        case "OAuthAccountNotLinked":
+          errorMessage = "This email is already associated with another account.";
+          break;
+        case "EmailSignin":
+          errorMessage = "Check your email for the sign-in link.";
+          break;
+        case "CredentialsSignin":
+          errorMessage = "Invalid email or password. Please try again.";
+          break;
+        case "SessionRequired":
+          errorMessage = "Please sign in to access this page.";
+          break;
+        default:
+          errorMessage = decodeURIComponent(errorParam);
+      }
+      
+      setError(errorMessage);
       setShowToast(true);
     }
   }, [searchParams]);
