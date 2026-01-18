@@ -81,7 +81,7 @@ export default function AdminDashboard() {
       message: 'Bulk user upload completed: 45 new students added',
       time: '10 minutes ago',
       icon: Users,
-      color: 'text-blue-600',
+      color: 'text-indigo-600',
     },
     {
       id: 2,
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
       message: 'New course approved: CS801 - Advanced Machine Learning',
       time: '1 hour ago',
       icon: BookOpen,
-      color: 'text-green-600',
+      color: 'text-indigo-700',
     },
     {
       id: 3,
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
       message: '23 enrollment requests pending instructor approval',
       time: '2 hours ago',
       icon: AlertCircle,
-      color: 'text-orange-600',
+      color: 'text-indigo-800',
     },
     {
       id: 4,
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
       message: 'Dr. Vikram Mehta submitted grades for CS701',
       time: '3 hours ago',
       icon: FileText,
-      color: 'text-purple-600',
+      color: 'text-indigo-900',
     },
     {
       id: 5,
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
           label="Total Users"
           value={stats.totalUsers}
           subtext={`+${stats.newUsersThisMonth} this month`}
-          color="bg-blue-600"
+          color="bg-indigo-600"
           href="/admin/users"
         />
         <StatCard
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
           label="Active Courses"
           value={stats.activeCourses}
           subtext={`${stats.totalCourses} total courses`}
-          color="bg-green-600"
+          color="bg-indigo-700"
           href="/admin/courses"
         />
         <StatCard
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
           label="Total Enrollments"
           value={stats.totalEnrollments}
           subtext={`${stats.pendingEnrollments} pending`}
-          color="bg-indigo-600"
+          color="bg-indigo-800"
           href="/admin/enrollments"
         />
         <StatCard
@@ -226,7 +226,7 @@ export default function AdminDashboard() {
           label="Grades Submitted"
           value={stats.gradesSubmitted}
           subtext={`${stats.pendingGrades} pending`}
-          color="bg-purple-600"
+          color="bg-indigo-900"
           href="/admin/grades"
         />
       </div>
@@ -254,10 +254,10 @@ export default function AdminDashboard() {
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                         action.priority === 'high'
-                          ? 'bg-indigo-100 text-indigo-700'
+                          ? 'bg-indigo-600 text-white'
                           : action.priority === 'medium'
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-blue-100 text-blue-700'
+                          ? 'bg-indigo-200 text-indigo-900'
+                          : 'bg-indigo-100 text-indigo-700'
                       }`}
                     >
                       {action.priority.toUpperCase()}
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-green-500 to-green-400"
+                      className="h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500"
                       style={{ width: '78%' }}
                     />
                   </div>
@@ -303,7 +303,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
+                      className="h-full rounded-full bg-gradient-to-r from-indigo-700 to-indigo-600"
                       style={{ width: '92%' }}
                     />
                   </div>
@@ -316,7 +316,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="mt-2 h-2 rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400"
+                      className="h-full rounded-full bg-gradient-to-r from-indigo-800 to-indigo-700"
                       style={{ width: '86%' }}
                     />
                   </div>
@@ -330,9 +330,9 @@ export default function AdminDashboard() {
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Avg. Attendance</span>
-                    <TrendingUp className="h-4 w-4 text-green-500" />
+                    <TrendingUp className="h-4 w-4 text-indigo-500" />
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-green-600">
+                  <p className="mt-2 text-2xl font-bold text-indigo-600">
                     {quickStats.avgPerformance.attendance}%
                   </p>
                 </div>
@@ -340,9 +340,9 @@ export default function AdminDashboard() {
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Avg. CGPA</span>
-                    <Award className="h-4 w-4 text-blue-500" />
+                    <Award className="h-4 w-4 text-indigo-600" />
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-blue-600">
+                  <p className="mt-2 text-2xl font-bold text-indigo-700">
                     {quickStats.avgPerformance.cgpa}
                   </p>
                 </div>
@@ -350,9 +350,9 @@ export default function AdminDashboard() {
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Completion Rate</span>
-                    <CheckCircle className="h-4 w-4 text-purple-500" />
+                    <CheckCircle className="h-4 w-4 text-indigo-700" />
                   </div>
-                  <p className="mt-2 text-2xl font-bold text-purple-600">
+                  <p className="mt-2 text-2xl font-bold text-indigo-800">
                     {quickStats.avgPerformance.completionRate}%
                   </p>
                 </div>
@@ -419,10 +419,10 @@ export default function AdminDashboard() {
         <h2 className="text-lg font-bold text-slate-900">Quick Actions</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-4">
           {[
-            { label: 'Add Users', href: '/admin/users/create', color: 'hover:bg-blue-50 hover:border-blue-300' },
-            { label: 'Create Course', href: '/admin/courses/create', color: 'hover:bg-green-50 hover:border-green-300' },
-            { label: 'Float Offering', href: '/admin/offerings/create', color: 'hover:bg-indigo-50 hover:border-indigo-300' },
-            { label: 'Generate Reports', href: '/admin/reports', color: 'hover:bg-purple-50 hover:border-purple-300' },
+            { label: 'Add Users', href: '/admin/users/create', color: 'hover:bg-indigo-50 hover:border-indigo-300' },
+            { label: 'Create Course', href: '/admin/courses/create', color: 'hover:bg-indigo-50 hover:border-indigo-400' },
+            { label: 'Float Offering', href: '/admin/offerings/create', color: 'hover:bg-indigo-50 hover:border-indigo-500' },
+            { label: 'Generate Reports', href: '/admin/reports', color: 'hover:bg-indigo-50 hover:border-indigo-600' },
           ].map((action) => (
             <Link
               key={action.label}

@@ -1,0 +1,27 @@
+# Google OAuth Configuration
+# Get these from Google Cloud Console: https://console.cloud.google.com/
+GOOGLE_CLIENT_ID="882291136004-m34kkqjlh9uaq1j0ud36713guv6c2feq.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="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"
+
+# NextAuth Configuration
+# Generate a random secret: openssl rand -base64 32
+NEXTAUTH_SECRET="yszhvPmL6e5KeMz3YFbol3ocKdrpRzFgiyCy8oonheE="
+NEXTAUTH_URL=http://localhost:3000
+
+# Email Configuration - Choose ONE option below
+
+# Option 1: Gmail SMTP (Recommended for Development)
+# Steps to set up:
+# 1. Enable 2-Factor Authentication on your Gmail
+# 2. Go to Google Account > Security > 2-Step Verification > App passwords
+# 3. Generate an app password for "Mail"
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=arpit01goel@gmail.com
+SMTP_PASSWORD="slkf rezm grlc ktkz"
+
+
+
+# Application Settings
+ALLOWED_EMAIL_DOMAIN=iitrpr.ac.in
+OTP_EXPIRY_MINUTES=1

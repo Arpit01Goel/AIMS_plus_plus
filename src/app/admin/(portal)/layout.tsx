@@ -16,7 +16,6 @@ import {
   MessageSquare,
   Settings,
   Menu,
-  Shield,
   UserCog,
   Award,
 } from "lucide-react";
@@ -94,26 +93,11 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Menu className="h-5 w-5 shrink-0" />
-          {!collapsed && (
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>
-              <p className="text-xs text-indigo-200">Admin Portal</p>
-            </div>
-          )}
+          {!collapsed && <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>}
         </button>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-white/20 px-4 py-3">
-        <Shield className="h-5 w-5 text-indigo-200" />
-        {!collapsed && (
-          <div className="text-xs">
-            <p className="font-semibold text-white">Administrator</p>
-            <p className="text-indigo-200">ACA Role</p>
-          </div>
-        )}
-      </div>
-
-      <ul className="mt-6 space-y-1.5 overflow-y-auto px-4" style={{ maxHeight: "calc(100vh - 180px)" }}>
+      <ul className="mt-6 space-y-1.5 px-4">
         {tabs.map((tab) => {
           const isActive =
             pathname === tab.href || pathname.startsWith(`${tab.href}/`);

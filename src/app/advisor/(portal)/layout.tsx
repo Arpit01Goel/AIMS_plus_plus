@@ -80,23 +80,8 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Menu className="h-5 w-5 shrink-0" />
-          {!collapsed && (
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>
-              <p className="text-xs text-indigo-200">Advisor Portal</p>
-            </div>
-          )}
+          {!collapsed && <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>}
         </button>
-      </div>
-
-      <div className="flex items-center gap-2 border-b border-white/20 px-4 py-3">
-        <GraduationCap className="h-5 w-5 text-indigo-200" />
-        {!collapsed && (
-          <div className="text-xs">
-            <p className="font-semibold text-white">Batch Advisor</p>
-            <p className="text-indigo-200">ADV Role</p>
-          </div>
-        )}
       </div>
 
       <ul className="mt-6 space-y-1.5 px-4">
