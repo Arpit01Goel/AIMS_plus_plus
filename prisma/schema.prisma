@@ -22,19 +22,58 @@ enum Role {
   ADMIN
 }
 
+enum EnrollmentType {
+  CREDIT
+  AUDIT
+  CREDIT_MINOR
+  CREDIT_CONCENTRATION
+}
+
 enum EnrollmentStatus {
   ENROLLED
+  PENDING_INSTRUCTOR_APPROVAL
+  PENDING_ADVISOR_APPROVAL
   DROPPED
-  WAITLISTED
+  REJECTED_BY_INSTRUCTOR
+  REJECTED_BY_ADVISOR
+  REJECTED_BY_ADMIN
+  WITHDRAWN_BY_STUDENT
+}
+
+enum OfferingStatus {
+  ENROLLING
+  RUNNING
   COMPLETED
 }
 
+enum Grade {
+  A
+  A_MINUS
+  B
+  B_MINUS
+  C
+  C_MINUS
+  D
+  E
+  F
+  I
+  W
+  S
+  U
+}
+
 enum CourseCategory {
-  CORE
-  ELECTIVE
-  OPEN_ELECTIVE
-  MINOR
-  HONORS
+  SC
+  SE
+  GR
+  PC
+  PE
+  HC
+  HE
+  CP
+  CT
+  NN
+  OC
 }
 
 enum EventType {
@@ -255,7 +294,7 @@ model Course {
   title     String
   credits   Int
   ltpsc     String? // e.g., "3-0-0-4" (Lecture-Tutorial-Practical-Self Study-Credits)
-  category  CourseCategory  @default(CORE)
+  category  CourseCategory  
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 
@@ -271,9 +310,10 @@ model Course {
 }
 
 model CourseOffering {
-  id       String @id @default(cuid())
-  capacity Int    @default(60)
+  id       String         @id @default(cuid())
+  capacity Int            @default(60)
   slot     String? // e.g., "A1", "B2"
+  status   OfferingStatus @default(ENROLLING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -317,7 +357,8 @@ model CourseMeeting {
 
 model Enrollment {
   id                   String           @id @default(cuid())
-  status               EnrollmentStatus @default(ENROLLED)
+  status               EnrollmentStatus @default(PENDING_INSTRUCTOR_APPROVAL)
+  enrollmentType       EnrollmentType   @default(CREDIT)
   grade                String? // e.g., "A", "B+", "F"
   attendancePercentage Float?
   createdAt            DateTime         @default(now())

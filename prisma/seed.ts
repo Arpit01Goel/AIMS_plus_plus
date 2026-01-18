@@ -211,7 +211,7 @@ async function main() {
       title: 'Introduction to Programming',
       credits: 4,
       ltpsc: '3-0-2-0-4',
-      category: 'CORE',
+      category: 'SC', // Science Core
       departmentId: cseDept.id,
     },
   });
@@ -222,7 +222,7 @@ async function main() {
       title: 'Data Structures & Algorithms',
       credits: 4,
       ltpsc: '3-1-0-0-4',
-      category: 'CORE',
+      category: 'PC', // Program Core
       departmentId: cseDept.id,
     },
   });
@@ -233,7 +233,7 @@ async function main() {
       title: 'Machine Learning',
       credits: 3,
       ltpsc: '3-0-0-0-3',
-      category: 'ELECTIVE',
+      category: 'PE', // Program Elective
       departmentId: cseDept.id,
     },
   });
@@ -252,6 +252,7 @@ async function main() {
       instructorId: instructor?.id,
       capacity: 60,
       slot: 'A1',
+      status: 'ENROLLING', // Course is open for enrollment
       courseMeetings: {
         create: [
           {
@@ -284,6 +285,7 @@ async function main() {
       instructorId: instructor?.id,
       capacity: 50,
       slot: 'B2',
+      status: 'RUNNING', // Course is currently running
       courseMeetings: {
         create: [
           {
@@ -310,6 +312,7 @@ async function main() {
       instructorId: instructor?.id,
       capacity: 40,
       slot: 'C1',
+      status: 'ENROLLING', // Course is open for enrollment
       courseMeetings: {
         create: [
           {
@@ -345,6 +348,8 @@ async function main() {
         studentId: student1.id,
         offeringId: offering1.id,
         status: 'ENROLLED',
+        enrollmentType: 'CREDIT',
+        grade: 'A',
         attendancePercentage: 95.5,
       },
     });
@@ -353,7 +358,8 @@ async function main() {
       data: {
         studentId: student1.id,
         offeringId: offering2.id,
-        status: 'ENROLLED',
+        status: 'PENDING_INSTRUCTOR_APPROVAL',
+        enrollmentType: 'CREDIT',
         attendancePercentage: 88.0,
       },
     });
@@ -365,6 +371,8 @@ async function main() {
         studentId: student2.id,
         offeringId: offering1.id,
         status: 'ENROLLED',
+        enrollmentType: 'CREDIT',
+        grade: 'B',
         attendancePercentage: 92.3,
       },
     });
@@ -373,7 +381,8 @@ async function main() {
       data: {
         studentId: student2.id,
         offeringId: offering3.id,
-        status: 'ENROLLED',
+        status: 'PENDING_ADVISOR_APPROVAL',
+        enrollmentType: 'AUDIT',
         attendancePercentage: 90.0,
       },
     });
