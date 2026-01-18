@@ -11,33 +11,33 @@ interface RouteConfig {
 }
 
 const ROUTE_CONFIGS: RouteConfig[] = [
-    {
-        pattern: /^\/student\/\(portal\)/,
-        requiredRole: 'STUDENT',
-        portalHome: '/student/(portal)/dashboard',
-    },
-    {
-        pattern: /^\/instructor\/\(portal\)/,
-        requiredRole: 'INSTRUCTOR',
-        portalHome: '/instructor/(portal)/dashboard',
-    },
-    {
-        pattern: /^\/advisor\/\(portal\)/,
-        requiredRole: 'ADVISOR',
-        portalHome: '/advisor/(portal)/dashboard',
-    },
-    {
-        pattern: /^\/admin\/\(portal\)/,
-        requiredRole: 'ADMIN',
-        portalHome: '/admin/(portal)/dashboard',
-    },
+  {
+    pattern: /^\/student/,
+    requiredRole: 'STUDENT',
+    portalHome: '/student/dashboard',
+  },
+  {
+    pattern: /^\/instructor/,
+    requiredRole: 'INSTRUCTOR',
+    portalHome: '/instructor/dashboard',
+  },
+  {
+    pattern: /^\/advisor/,
+    requiredRole: 'ADVISOR',
+    portalHome: '/advisor/dashboard',
+  },
+  {
+    pattern: /^\/admin/,
+    requiredRole: 'ADMIN',
+    portalHome: '/admin/dashboard',
+  },
 ];
 
 const ROLE_PORTAL_HOMES: Record<UserRole, string> = {
-    STUDENT: '/student/(portal)/dashboard',
-    INSTRUCTOR: '/instructor/(portal)/dashboard',
-    ADVISOR: '/advisor/(portal)/dashboard',
-    ADMIN: '/admin/(portal)/dashboard',
+    STUDENT: '/student/dashboard',
+    INSTRUCTOR: '/instructor/dashboard',
+    ADVISOR: '/advisor/dashboard',
+    ADMIN: '/admin/dashboard',
 };
 
 export async function middleware(request: NextRequest) {
@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
 
     // If no token (unauthenticated), redirect to login with callback URL
     if (!token) {
-        const loginUrl = new URL('/(auth)/login', request.url);
+        const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('callbackUrl', pathname);
         return NextResponse.redirect(loginUrl);
     }
@@ -81,14 +81,14 @@ export async function middleware(request: NextRequest) {
     }
 
     // Fallback: if role is not recognized, redirect to login
-    return NextResponse.redirect(new URL('/(auth)/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
 }
 
 export const config = {
     matcher: [
-        '/student/(portal)/:path*',
-        '/instructor/(portal)/:path*',
-        '/advisor/(portal)/:path*',
-        '/admin/(portal)/:path*',
+        '/student/:path*',
+        '/instructor/:path*',
+        '/advisor/:path*',
+        '/admin/:path*',
     ],
 };
