@@ -14,7 +14,6 @@ import { PrismaClient } from '@prisma/client';
 
 // Extend NodeJS global to include prisma for dev caching
 declare global {
-  // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
