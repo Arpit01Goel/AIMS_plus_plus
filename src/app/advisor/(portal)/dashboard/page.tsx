@@ -1,7 +1,32 @@
 'use client';
 
-import { ClipboardCheck, Users, AlertCircle, TrendingUp, Clock } from 'lucide-react';
+import { ClipboardCheck, Users, AlertCircle, TrendingUp, Clock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+interface DashboardData {
+  stats: {
+    pendingApprovals: number;
+    totalStudents: number;
+    creditViolations: number;
+    avgGPA: number;
+  };
+  pendingEnrollments: Array<{
+    id: string;
+    studentName: string;
+    studentId: string;
+    course: string;
+    session: string;
+    type: string;
+    submittedDate: string;
+  }>;
+  recentActivity: Array<{
+    id: string;
+    message: string;
+    time: string;
+    type: string;
+  }>;
+}
 
 function StatCard({
   icon: Icon,
@@ -50,76 +75,54 @@ function StatCard({
 }
 
 export default function AdvisorDashboard() {
-  const stats = {
-    pendingApprovals: 8,
-    batchStudents: 45,
-    creditViolations: 3,
-    avgGPA: 3.72,
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/advisor/dashboard');
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      const data = await response.json();
+      setDashboardData(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const pendingApprovals = [
-    {
-      id: 1,
-      student: 'Rahul Verma',
-      studentId: '2021CS001',
-      course: 'CS502 - Data Structures',
-      session: '2025-II',
-      type: 'Credit',
-      submittedDate: '2026-01-10',
-    },
-    {
-      id: 2,
-      student: 'Priya Sharma',
-      studentId: '2021CS015',
-      course: 'CS604 - Operating Systems',
-      session: '2025-II',
-      type: 'Credit',
-      submittedDate: '2026-01-11',
-    },
-    {
-      id: 3,
-      student: 'Amit Kumar',
-      studentId: '2021CS022',
-      course: 'CS801 - Machine Learning',
-      session: '2025-II',
-      type: 'Audit',
-      submittedDate: '2026-01-12',
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
-  const recentActivity = [
-    {
-      id: 1,
-      message: 'Approved enrollment for Neha Gupta in CS701',
-      time: '2 hours ago',
-      type: 'approval',
-    },
-    {
-      id: 2,
-      message: 'Credit violation alert for Vikram Singh',
-      time: '5 hours ago',
-      type: 'alert',
-    },
-    {
-      id: 3,
-      message: 'Rejected enrollment for Arjun Patel in CS502 - Time conflict',
-      time: '1 day ago',
-      type: 'rejection',
-    },
-    {
-      id: 4,
-      message: 'Approved enrollment for Sanjay Kumar in EE201',
-      time: '2 days ago',
-      type: 'approval',
-    },
-  ];
+  if (error || !dashboardData) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-red-800">Error: {error || 'Failed to load dashboard'}</p>
+        <button
+          onClick={fetchDashboardData}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
-  const batchInfo = {
-    department: 'Computer Science',
-    yearOfEntry: '2021',
-    degree: 'M.Tech',
-    totalStudents: 45,
-  };
+  const { stats, pendingEnrollments, recentActivity } = dashboardData;
 
   return (
     <div className="space-y-6">
@@ -134,25 +137,6 @@ export default function AdvisorDashboard() {
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
           Monitor your batch students and manage enrollment approvals
         </p>
-
-        {/* Batch Info */}
-        <div className="mt-6 rounded-xl border border-indigo-100 bg-indigo-50 p-4">
-          <p className="text-sm font-semibold text-indigo-900">Your Assigned Batch</p>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-indigo-800">
-            <span>
-              <strong>Department:</strong> {batchInfo.department}
-            </span>
-            <span>
-              <strong>Degree:</strong> {batchInfo.degree}
-            </span>
-            <span>
-              <strong>Year of Entry:</strong> {batchInfo.yearOfEntry}
-            </span>
-            <span>
-              <strong>Students:</strong> {batchInfo.totalStudents}
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* Stats Grid */}
@@ -168,7 +152,7 @@ export default function AdvisorDashboard() {
         <StatCard
           icon={Users}
           label="Batch Students"
-          value={stats.batchStudents}
+          value={stats.totalStudents}
           subtext="Total assigned"
           color="bg-blue-500"
           href="/advisor/students"
@@ -204,14 +188,14 @@ export default function AdvisorDashboard() {
           </div>
 
           <div className="mt-4 space-y-3">
-            {pendingApprovals.map((approval) => (
+            {pendingEnrollments.slice(0, 3).map((approval) => (
               <div
                 key={approval.id}
                 className="rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-indigo-300"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900">{approval.student}</p>
+                    <p className="font-semibold text-slate-900">{approval.studentName}</p>
                     <p className="text-xs text-slate-600">{approval.studentId}</p>
                     <p className="mt-2 text-sm text-slate-700">{approval.course}</p>
                     <div className="mt-2 flex items-center gap-3 text-xs text-slate-600">
@@ -220,13 +204,16 @@ export default function AdvisorDashboard() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {approval.submittedDate}
+                        {new Date(approval.submittedDate).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
+            {pendingEnrollments.length === 0 && (
+              <p className="py-8 text-center text-sm text-slate-500">No pending approvals</p>
+            )}
           </div>
         </div>
 

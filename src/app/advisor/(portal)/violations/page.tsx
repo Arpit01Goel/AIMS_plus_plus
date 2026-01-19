@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Filter, AlertTriangle, CheckCircle, Mail, Eye, TrendingUp, TrendingDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, AlertTriangle, CheckCircle, Mail, Eye, Loader2, TrendingDown, TrendingUp } from 'lucide-react';
 
 interface Violation {
   id: string;
@@ -22,57 +22,36 @@ interface Violation {
 }
 
 export default function CreditViolationsPage() {
-  const [violations, setViolations] = useState<Violation[]>([
-    {
-      id: '1',
-      studentId: 'STU001',
-      studentName: 'Amit Kumar',
-      orgId: '2021CS022',
-      violationType: 'excessive',
-      severity: 'high',
-      description: 'Student enrolled in 28 credits, exceeding maximum limit of 24',
-      currentCredits: 28,
-      maxCredits: 24,
-      session: '2025-II',
-      reportedDate: '2026-01-10',
-      status: 'pending',
-    },
-    {
-      id: '2',
-      studentId: 'STU002',
-      studentName: 'Vikram Singh',
-      orgId: '2021CS047',
-      violationType: 'insufficient',
-      severity: 'medium',
-      description: 'Student enrolled in only 10 credits, below minimum of 16',
-      currentCredits: 10,
-      minCredits: 16,
-      session: '2025-II',
-      reportedDate: '2026-01-11',
-      status: 'pending',
-    },
-    {
-      id: '3',
-      studentId: 'STU003',
-      studentName: 'Karan Mehta',
-      orgId: '2021CS061',
-      violationType: 'category',
-      severity: 'medium',
-      description: 'Insufficient humanities credits. Required: 6, Enrolled: 2',
-      currentCredits: 18,
-      categoryDeficit: 'Humanities (4 credits short)',
-      session: '2025-II',
-      reportedDate: '2026-01-12',
-      status: 'reviewed',
-      advisorRemarks: 'Student advised to enroll in HS courses next semester',
-    },
-  ]);
+  const [violations, setViolations] = useState<Violation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedViolation, setSelectedViolation] = useState<Violation | null>(null);
   const [remarks, setRemarks] = useState('');
+
+  useEffect(() => {
+    fetchViolations();
+  }, []);
+
+  const fetchViolations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/advisor/violations');
+      if (!response.ok) {
+        throw new Error('Failed to fetch violations');
+      }
+      const data = await response.json();
+      setViolations(data.violations);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredViolations = violations.filter((v) => {
     const matchesSearch =
@@ -98,6 +77,28 @@ export default function CreditViolationsPage() {
       return <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800">Medium</span>;
     return <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">Low</span>;
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-red-800">Error: {error}</p>
+        <button
+          onClick={fetchViolations}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   const getStatusBadge = (status: Violation['status']) => {
     if (status === 'resolved')

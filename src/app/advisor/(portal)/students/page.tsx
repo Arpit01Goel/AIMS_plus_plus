@@ -1,120 +1,51 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Filter, Download, Mail, TrendingUp, TrendingDown, Users, Award } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Download, Mail, Users, Loader2 } from 'lucide-react';
 
 interface Student {
   id: string;
   orgId: string;
   name: string;
   email: string;
+  batch: number | null;
+  program: string;
+  department: string;
   cgpa: number;
   creditsEarned: number;
-  creditsRequired: number;
   currentEnrollments: number;
-  status: 'active' | 'warning' | 'critical';
-  lastSemesterSGPA: number;
-  trend: 'up' | 'down' | 'stable';
+  phone?: string;
+  address?: string;
 }
 
 export default function BatchStudentsPage() {
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: '1',
-      orgId: '2021CS001',
-      name: 'Rahul Verma',
-      email: 'rahul.verma@iitrpr.ac.in',
-      cgpa: 3.85,
-      creditsEarned: 48,
-      creditsRequired: 120,
-      currentEnrollments: 5,
-      status: 'active',
-      lastSemesterSGPA: 9.0,
-      trend: 'up',
-    },
-    {
-      id: '2',
-      orgId: '2021CS015',
-      name: 'Priya Sharma',
-      email: 'priya.sharma@iitrpr.ac.in',
-      cgpa: 3.92,
-      creditsEarned: 52,
-      creditsRequired: 120,
-      currentEnrollments: 4,
-      status: 'active',
-      lastSemesterSGPA: 9.5,
-      trend: 'up',
-    },
-    {
-      id: '3',
-      orgId: '2021CS022',
-      name: 'Amit Kumar',
-      email: 'amit.kumar@iitrpr.ac.in',
-      cgpa: 3.68,
-      creditsEarned: 44,
-      creditsRequired: 120,
-      currentEnrollments: 6,
-      status: 'warning',
-      lastSemesterSGPA: 8.2,
-      trend: 'down',
-    },
-    {
-      id: '4',
-      orgId: '2021CS034',
-      name: 'Sneha Patel',
-      email: 'sneha.patel@iitrpr.ac.in',
-      cgpa: 4.0,
-      creditsEarned: 56,
-      creditsRequired: 120,
-      currentEnrollments: 4,
-      status: 'active',
-      lastSemesterSGPA: 10.0,
-      trend: 'stable',
-    },
-    {
-      id: '5',
-      orgId: '2021CS047',
-      name: 'Vikram Singh',
-      email: 'vikram.singh@iitrpr.ac.in',
-      cgpa: 3.55,
-      creditsEarned: 40,
-      creditsRequired: 120,
-      currentEnrollments: 5,
-      status: 'warning',
-      lastSemesterSGPA: 7.8,
-      trend: 'down',
-    },
-    {
-      id: '6',
-      orgId: '2021CS053',
-      name: 'Anjali Desai',
-      email: 'anjali.desai@iitrpr.ac.in',
-      cgpa: 3.78,
-      creditsEarned: 46,
-      creditsRequired: 120,
-      currentEnrollments: 4,
-      status: 'active',
-      lastSemesterSGPA: 8.5,
-      trend: 'up',
-    },
-    {
-      id: '7',
-      orgId: '2021CS061',
-      name: 'Karan Mehta',
-      email: 'karan.mehta@iitrpr.ac.in',
-      cgpa: 3.25,
-      creditsEarned: 38,
-      creditsRequired: 120,
-      currentEnrollments: 3,
-      status: 'critical',
-      lastSemesterSGPA: 6.5,
-      trend: 'down',
-    },
-  ]);
-
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/advisor/students');
+      if (!response.ok) {
+        throw new Error('Failed to fetch students');
+      }
+      const data = await response.json();
+      setStudents(data.students);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredStudents = students
     .filter((student) => {
@@ -122,7 +53,10 @@ export default function BatchStudentsPage() {
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.orgId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
+      
+      const status = student.cgpa >= 7.0 ? 'active' : student.cgpa >= 6.0 ? 'warning' : 'critical';
+      const matchesStatus = statusFilter === 'all' || status === statusFilter;
+      
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
@@ -134,49 +68,69 @@ export default function BatchStudentsPage() {
 
   const stats = {
     total: students.length,
-    active: students.filter((s) => s.status === 'active').length,
-    warning: students.filter((s) => s.status === 'warning').length,
-    critical: students.filter((s) => s.status === 'critical').length,
-    avgCGPA: (students.reduce((sum, s) => sum + s.cgpa, 0) / students.length).toFixed(2),
+    active: students.filter(s => s.cgpa >= 7.0).length,
+    warning: students.filter(s => s.cgpa >= 6.0 && s.cgpa < 7.0).length,
+    critical: students.filter(s => s.cgpa < 6.0).length,
+    avgCGPA: students.length > 0 
+      ? (students.reduce((sum, s) => sum + s.cgpa, 0) / students.length).toFixed(2)
+      : '0.00',
   };
 
-  const getStatusBadge = (status: Student['status']) => {
-    if (status === 'active')
+  const getStatusBadge = (cgpa: number) => {
+    if (cgpa >= 7.0) {
       return <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-800">Active</span>;
-    if (status === 'warning')
+    } else if (cgpa >= 6.0) {
       return <span className="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-800">Warning</span>;
+    }
     return <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-800">Critical</span>;
   };
 
-  const getTrendIcon = (trend: Student['trend']) => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <div className="h-4 w-4" />;
-  };
-
   const exportToCSV = () => {
-    const headers = ['Org ID', 'Name', 'Email', 'CGPA', 'Credits Earned', 'Status'];
-    const rows = filteredStudents.map((s) => [
+    const headers = ['Entry Number', 'Name', 'Email', 'CGPA', 'Credits Earned', 'Current Enrollments', 'Program'];
+    const rows = filteredStudents.map(s => [
       s.orgId,
       s.name,
       s.email,
-      s.cgpa.toFixed(2),
-      `${s.creditsEarned}/${s.creditsRequired}`,
-      s.status,
+      s.cgpa,
+      s.creditsEarned,
+      s.currentEnrollments,
+      s.program,
     ]);
-
-    const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n');
+    
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `batch_students_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `students_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
   };
 
   const sendBatchEmail = () => {
-    alert(`Email sent to ${filteredStudents.length} students.`);
+    alert(`Email would be sent to ${filteredStudents.length} students.`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-red-800">Error: {error}</p>
+        <button
+          onClick={fetchStudents}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -187,10 +141,10 @@ export default function BatchStudentsPage() {
             Batch Management
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
-            Batch Students
+            My Students
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-slate-600">
-            Computer Science • M.Tech • 2021 Entry Batch
+            All students under your advisement
           </p>
         </div>
 
@@ -275,35 +229,32 @@ export default function BatchStudentsPage() {
         </div>
       </div>
 
-      {/* Students List */}
+      {/* Students Table */}
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-slate-200 bg-slate-50">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Student
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Email
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Entry Number
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
+                <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Program
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                   CGPA
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Credits
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Enrollments
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Current Enrollments
                 </th>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Last SGPA
-                </th>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
+                <th className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Status
-                </th>
-                <th className="px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Actions
                 </th>
               </tr>
             </thead>
@@ -312,38 +263,33 @@ export default function BatchStudentsPage() {
                 <tr key={student.id} className="transition hover:bg-slate-50">
                   <td className="px-6 py-4">
                     <div>
-                      <p className="font-bold text-slate-900">{student.name}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-600">{student.orgId}</p>
+                      <p className="font-semibold text-slate-900">{student.name}</p>
+                      <p className="text-xs text-slate-600">{student.email}</p>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-sm text-slate-700">{student.email}</p>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                      {student.orgId}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-700">
+                    {student.program}
+                    <br />
+                    <span className="text-xs text-slate-500">{student.department}</span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      <span className="text-lg font-bold text-slate-900">{student.cgpa.toFixed(2)}</span>
-                      {getTrendIcon(student.trend)}
-                    </div>
+                    <span className="text-lg font-bold text-slate-900">{student.cgpa.toFixed(2)}</span>
+                  </td>
+                  <td className="px-6 py-4 text-center text-sm text-slate-700">
+                    {student.creditsEarned}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <div>
-                      <p className="font-semibold text-slate-900">{student.creditsEarned}</p>
-                      <p className="text-xs text-slate-600">/ {student.creditsRequired}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="rounded-full bg-blue-100 px-2.5 py-1 text-sm font-semibold text-blue-800">
+                    <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-800">
                       {student.currentEnrollments}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <p className="font-semibold text-slate-900">{student.lastSemesterSGPA.toFixed(1)}</p>
-                  </td>
-                  <td className="px-6 py-4 text-center">{getStatusBadge(student.status)}</td>
-                  <td className="px-6 py-4 text-center">
-                    <button className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700">
-                      View Details
-                    </button>
+                    {getStatusBadge(student.cgpa)}
                   </td>
                 </tr>
               ))}

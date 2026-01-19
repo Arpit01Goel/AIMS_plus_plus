@@ -1,67 +1,84 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, Phone, Building2, Calendar, Users, CheckCircle, Clock, Award, BookOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, Phone, Building2, Calendar, Users, CheckCircle, Clock, Award, BookOpen, Loader2 } from 'lucide-react';
 
-interface BatchAssignment {
-  id: string;
-  department: string;
-  degree: string;
-  yearOfEntry: number;
-  totalStudents: number;
-  assignedDate: string;
-}
-
-interface ActivityStat {
-  period: string;
-  approvals: number;
-  rejections: number;
-  reviews: number;
+interface ProfileData {
+  profile: {
+    name: string;
+    email: string;
+    department: string;
+    departmentCode: string;
+    program: string;
+    primaryCohort: number | null;
+    totalStudents: number;
+  };
+  activityStats: {
+    thisMonth: {
+      approvals: number;
+      rejections: number;
+    };
+    lastMonth: {
+      approvals: number;
+      rejections: number;
+    };
+  };
 }
 
 export default function AdvisorProfilePage() {
-  const [profile] = useState({
-    name: 'Dr. Rajesh Kumar',
-    employeeId: 'FAC001',
-    email: 'rajesh.kumar@iitrpr.ac.in',
-    phone: '+91 98765 43210',
-    department: 'Computer Science',
-    designation: 'Associate Professor',
-    joiningDate: '2018-07-15',
-    officeRoom: 'Academic Block A-305',
-    officeHours: 'Monday & Thursday, 2:00 PM - 4:00 PM',
-  });
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [batchAssignments] = useState<BatchAssignment[]>([
-    {
-      id: '1',
-      department: 'Computer Science',
-      degree: 'M.Tech',
-      yearOfEntry: 2021,
-      totalStudents: 45,
-      assignedDate: '2021-08-01',
-    },
-    {
-      id: '2',
-      department: 'Computer Science',
-      degree: 'M.Tech',
-      yearOfEntry: 2022,
-      totalStudents: 38,
-      assignedDate: '2022-08-01',
-    },
-  ]);
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
-  const [activityStats] = useState<ActivityStat[]>([
-    { period: 'This Month', approvals: 24, rejections: 3, reviews: 8 },
-    { period: 'Last Month', approvals: 32, rejections: 5, reviews: 12 },
-    { period: 'This Semester', approvals: 78, rejections: 12, reviews: 28 },
-    { period: 'Last Semester', approvals: 85, rejections: 10, reviews: 25 },
-  ]);
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/advisor/profile');
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile');
+      }
+      const data = await response.json();
+      setProfileData(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const totalStudents = batchAssignments.reduce((sum, batch) => sum + batch.totalStudents, 0);
-  const totalApprovals = activityStats[2].approvals;
-  const totalRejections = activityStats[2].rejections;
-  const approvalRate = ((totalApprovals / (totalApprovals + totalRejections)) * 100).toFixed(1);
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error || !profileData) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-red-800">Error: {error || 'Failed to load profile'}</p>
+        <button
+          onClick={fetchProfile}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const { profile, activityStats } = profileData;
+  const totalApprovals = activityStats.thisMonth.approvals + activityStats.lastMonth.approvals;
+  const totalRejections = activityStats.thisMonth.rejections + activityStats.lastMonth.rejections;
+  const approvalRate = totalApprovals + totalRejections > 0 
+    ? ((totalApprovals / (totalApprovals + totalRejections)) * 100).toFixed(1)
+    : '0.0';
 
   return (
     <div className="space-y-6">
@@ -93,8 +110,8 @@ export default function AdvisorProfilePage() {
                   .join('')}
               </div>
               <h2 className="mt-4 text-2xl font-bold text-slate-900">{profile.name}</h2>
-              <p className="mt-1 text-sm font-medium text-indigo-600">{profile.designation}</p>
-              <p className="mt-1 text-xs text-slate-600">{profile.employeeId}</p>
+              <p className="mt-1 text-sm font-medium text-indigo-600">Faculty Advisor</p>
+              <p className="mt-1 text-xs text-slate-600">{profile.departmentCode}</p>
             </div>
 
             <div className="mt-6 space-y-3">
@@ -107,14 +124,6 @@ export default function AdvisorProfilePage() {
               </div>
 
               <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
-                <Phone className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                <div>
-                  <p className="text-xs font-semibold text-slate-700">Phone</p>
-                  <p className="mt-1 text-sm text-slate-900">{profile.phone}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
                 <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
                 <div>
                   <p className="text-xs font-semibold text-slate-700">Department</p>
@@ -123,34 +132,22 @@ export default function AdvisorProfilePage() {
               </div>
 
               <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
-                <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+                <Users className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
                 <div>
-                  <p className="text-xs font-semibold text-slate-700">Office Room</p>
-                  <p className="mt-1 text-sm text-slate-900">{profile.officeRoom}</p>
+                  <p className="text-xs font-semibold text-slate-700">Program</p>
+                  <p className="mt-1 text-sm text-slate-900">{profile.program}</p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
-                <Clock className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                <div>
-                  <p className="text-xs font-semibold text-slate-700">Office Hours</p>
-                  <p className="mt-1 text-sm text-slate-900">{profile.officeHours}</p>
+              {profile.primaryCohort && (
+                <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
+                  <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-700">Primary Cohort</p>
+                    <p className="mt-1 text-sm text-slate-900">{profile.primaryCohort}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
-                <Calendar className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
-                <div>
-                  <p className="text-xs font-semibold text-slate-700">Joining Date</p>
-                  <p className="mt-1 text-sm text-slate-900">
-                    {new Date(profile.joiningDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -160,7 +157,7 @@ export default function AdvisorProfilePage() {
 
             <div className="mt-4 space-y-4">
               <div className="text-center rounded-xl bg-slate-50 p-4">
-                <p className="text-3xl font-bold text-indigo-700">{totalStudents}</p>
+                <p className="text-3xl font-bold text-indigo-700">{profile.totalStudents}</p>
                 <p className="mt-1 text-xs font-medium text-slate-600">Total Assigned Students</p>
               </div>
 
@@ -170,8 +167,8 @@ export default function AdvisorProfilePage() {
               </div>
 
               <div className="text-center rounded-xl bg-slate-50 p-4">
-                <p className="text-3xl font-bold text-blue-600">{batchAssignments.length}</p>
-                <p className="mt-1 text-xs font-medium text-slate-600">Batch Assignments</p>
+                <p className="text-3xl font-bold text-blue-600">{profile.primaryCohort || 'N/A'}</p>
+                <p className="mt-1 text-xs font-medium text-slate-600">Primary Cohort</p>
               </div>
             </div>
           </div>
@@ -179,50 +176,35 @@ export default function AdvisorProfilePage() {
 
         {/* Main Content */}
         <div className="space-y-6 lg:col-span-2">
-          {/* Batch Assignments */}
+          {/* Batch Assignment Info */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <Users className="h-6 w-6 text-indigo-600" />
-              <h3 className="text-lg font-bold text-slate-900">Batch Assignments</h3>
+              <h3 className="text-lg font-bold text-slate-900">Batch Assignment</h3>
             </div>
 
-            <div className="mt-4 space-y-3">
-              {batchAssignments.map((batch) => (
-                <div
-                  key={batch.id}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-5"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-lg font-bold text-slate-900">
-                        {batch.department} - {batch.degree}
-                      </h4>
+            <div className="mt-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900">
+                      {profile.department} - {profile.program}
+                    </h4>
+                    {profile.primaryCohort && (
                       <p className="mt-1 text-sm text-slate-600">
-                        Year of Entry: {batch.yearOfEntry}
+                        Primary Cohort: {profile.primaryCohort}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        Assigned since: {new Date(batch.assignedDate).toLocaleDateString('en-IN', {
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-3xl font-bold text-indigo-700">{batch.totalStudents}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-600">Students</p>
-                    </div>
+                    )}
+                    <p className="mt-1 text-xs text-slate-500">
+                      Department Code: {profile.departmentCode}
+                    </p>
                   </div>
-
-                  <div className="mt-4 flex gap-2">
-                    <button className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
-                      View Students
-                    </button>
-                    <button className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                      Generate Report
-                    </button>
+                  <div className="text-right">
+                    <p className="text-3xl font-bold text-indigo-700">{profile.totalStudents}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-600">Students</p>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
 
@@ -234,28 +216,33 @@ export default function AdvisorProfilePage() {
             </div>
 
             <div className="mt-4 space-y-3">
-              {activityStats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4"
-                >
-                  <h4 className="font-bold text-slate-900">{stat.period}</h4>
-                  <div className="mt-3 grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{stat.approvals}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-600">Approvals</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-red-600">{stat.rejections}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-600">Rejections</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{stat.reviews}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-600">Reviews</p>
-                    </div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <h4 className="font-bold text-slate-900">This Month</h4>
+                <div className="mt-3 grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">{activityStats.thisMonth.approvals}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-600">Approvals</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-red-600">{activityStats.thisMonth.rejections}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-600">Rejections</p>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <h4 className="font-bold text-slate-900">Last Month</h4>
+                <div className="mt-3 grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">{activityStats.lastMonth.approvals}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-600">Approvals</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-red-600">{activityStats.lastMonth.rejections}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-600">Rejections</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

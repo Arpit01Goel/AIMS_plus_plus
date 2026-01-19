@@ -1,104 +1,98 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Filter, CheckCircle, X, Eye, Clock, Calendar } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Filter, CheckCircle, X, Eye, Clock, Calendar, Loader2 } from 'lucide-react';
 
 interface EnrollmentRequest {
   id: string;
   studentId: string;
   studentName: string;
+  studentEmail: string;
   orgId: string;
   courseCode: string;
   courseTitle: string;
-  section: string;
-  session: string;
-  enrollType: 'C' | 'A' | 'CM' | 'CC';
-  status: 'APEN';
-  submittedDate: string;
-  instructorApproved: string;
   credits: number;
+  session: string;
+  enrollType: 'CREDIT' | 'AUDIT' | 'CREDIT_MINOR' | 'CREDIT_CONCENTRATION';
+  status: string;
+  submittedDate: string;
+  instructorName: string;
   currentCredits: number;
-  maxCredits: number;
+  slot?: string;
 }
 
+const MAX_CREDITS = 26;
+
 export default function EnrollmentApprovalsPage() {
-  const [requests, setRequests] = useState<EnrollmentRequest[]>([
-    {
-      id: '1',
-      studentId: 'STU001',
-      studentName: 'Rahul Verma',
-      orgId: '2021CS001',
-      courseCode: 'CS502',
-      courseTitle: 'Data Structures and Algorithms',
-      section: 'A',
-      session: '2025-II',
-      enrollType: 'C',
-      status: 'APEN',
-      submittedDate: '2026-01-10',
-      instructorApproved: '2026-01-11',
-      credits: 4,
-      currentCredits: 16,
-      maxCredits: 24,
-    },
-    {
-      id: '2',
-      studentId: 'STU002',
-      studentName: 'Priya Sharma',
-      orgId: '2021CS015',
-      courseCode: 'CS604',
-      courseTitle: 'Advanced Operating Systems',
-      section: 'B',
-      session: '2025-II',
-      enrollType: 'C',
-      status: 'APEN',
-      submittedDate: '2026-01-11',
-      instructorApproved: '2026-01-12',
-      credits: 3,
-      currentCredits: 18,
-      maxCredits: 24,
-    },
-    {
-      id: '3',
-      studentId: 'STU003',
-      studentName: 'Amit Kumar',
-      orgId: '2021CS022',
-      courseCode: 'CS801',
-      courseTitle: 'Advanced Machine Learning',
-      section: 'A',
-      session: '2025-II',
-      enrollType: 'A',
-      status: 'APEN',
-      submittedDate: '2026-01-12',
-      instructorApproved: '2026-01-13',
-      credits: 4,
-      currentCredits: 20,
-      maxCredits: 24,
-    },
-  ]);
+  const [requests, setRequests] = useState<EnrollmentRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [sessionFilter, setSessionFilter] = useState('2025-II');
+  const [sessionFilter, setSessionFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [selectedRequest, setSelectedRequest] = useState<EnrollmentRequest | null>(null);
   const [remarks, setRemarks] = useState('');
+
+  useEffect(() => {
+    fetchEnrollments();
+  }, []);
+
+  const fetchEnrollments = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/advisor/approvals');
+      if (!response.ok) {
+        throw new Error('Failed to fetch enrollments');
+      }
+      const data = await response.json();
+      setRequests(data.enrollments);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredRequests = requests.filter((request) => {
     const matchesSearch =
       request.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       request.orgId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       request.courseCode.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSession = request.session === sessionFilter;
+    const matchesSession = sessionFilter === 'all' || request.session === sessionFilter;
     const matchesType = typeFilter === 'all' || request.enrollType === typeFilter;
     return matchesSearch && matchesSession && matchesType;
   });
 
-  const handleApprove = (requestId: string) => {
+  const handleApprove = async (requestId: string) => {
     const request = requests.find((r) => r.id === requestId);
     if (!request) return;
 
-    if (confirm(`Approve enrollment for ${request.studentName} in ${request.courseCode}?`)) {
+    if (!confirm(`Approve enrollment for ${request.studentName} in ${request.courseCode}?`)) {
+      return;
+    }
+
+    try {
+      setProcessing(requestId);
+      const response = await fetch(`/api/advisor/approvals/${requestId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve' }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to approve enrollment');
+      }
+
       setRequests(requests.filter((r) => r.id !== requestId));
-      alert(`Enrollment approved. Email notification sent to ${request.studentName}.`);
+      alert(`Enrollment approved successfully for ${request.studentName}.`);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to approve enrollment');
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -109,32 +103,48 @@ export default function EnrollmentApprovalsPage() {
     setSelectedRequest(request);
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!selectedRequest || !remarks.trim()) {
       alert('Please provide remarks for rejection.');
       return;
     }
 
-    setRequests(requests.filter((r) => r.id !== selectedRequest.id));
-    alert(
-      `Enrollment rejected for ${selectedRequest.studentName}. Email notification sent with remarks.`
-    );
-    setSelectedRequest(null);
-    setRemarks('');
+    try {
+      setProcessing(selectedRequest.id);
+      const response = await fetch(`/api/advisor/approvals/${selectedRequest.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject', remarks }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to reject enrollment');
+      }
+
+      setRequests(requests.filter((r) => r.id !== selectedRequest.id));
+      alert(`Enrollment rejected for ${selectedRequest.studentName}.`);
+      setSelectedRequest(null);
+      setRemarks('');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to reject enrollment');
+    } finally {
+      setProcessing(null);
+    }
   };
 
   const getEnrollTypeBadge = (type: EnrollmentRequest['enrollType']) => {
     const styles = {
-      C: 'bg-blue-100 text-blue-800',
-      A: 'bg-purple-100 text-purple-800',
-      CM: 'bg-green-100 text-green-800',
-      CC: 'bg-orange-100 text-orange-800',
+      CREDIT: 'bg-blue-100 text-blue-800',
+      AUDIT: 'bg-purple-100 text-purple-800',
+      CREDIT_MINOR: 'bg-green-100 text-green-800',
+      CREDIT_CONCENTRATION: 'bg-orange-100 text-orange-800',
     };
     const labels = {
-      C: 'Credit',
-      A: 'Audit',
-      CM: 'Minor',
-      CC: 'Concentration',
+      CREDIT: 'Credit',
+      AUDIT: 'Audit',
+      CREDIT_MINOR: 'Minor',
+      CREDIT_CONCENTRATION: 'Concentration',
     };
     return (
       <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${styles[type]}`}>
@@ -143,11 +153,11 @@ export default function EnrollmentApprovalsPage() {
     );
   };
 
-  const getCreditStatus = (current: number, max: number, additional: number) => {
+  const getCreditStatus = (current: number, additional: number) => {
     const total = current + additional;
-    if (total > max) {
+    if (total > MAX_CREDITS) {
       return <span className="font-semibold text-red-600">⚠️ Exceeds limit</span>;
-    } else if (total === max) {
+    } else if (total === MAX_CREDITS) {
       return <span className="font-semibold text-orange-600">At maximum</span>;
     }
     return <span className="font-semibold text-green-600">Within limit</span>;
@@ -155,10 +165,32 @@ export default function EnrollmentApprovalsPage() {
 
   const stats = {
     total: requests.length,
-    creditType: requests.filter((r) => r.enrollType === 'C').length,
-    auditType: requests.filter((r) => r.enrollType === 'A').length,
-    overload: requests.filter((r) => r.currentCredits + r.credits > r.maxCredits).length,
+    creditType: requests.filter((r) => r.enrollType === 'CREDIT').length,
+    auditType: requests.filter((r) => r.enrollType === 'AUDIT').length,
+    overload: requests.filter((r) => r.currentCredits + r.credits > MAX_CREDITS).length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+        <p className="text-red-800">Error: {error}</p>
+        <button
+          onClick={fetchEnrollments}
+          className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -220,6 +252,7 @@ export default function EnrollmentApprovalsPage() {
               onChange={(e) => setSessionFilter(e.target.value)}
               className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
+              <option value="all">All Sessions</option>
               <option value="2025-II">2025-II (Fall)</option>
               <option value="2025-I">2025-I (Spring)</option>
               <option value="2024-II">2024-II</option>
@@ -231,10 +264,10 @@ export default function EnrollmentApprovalsPage() {
               className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="all">All Types</option>
-              <option value="C">Credit</option>
-              <option value="A">Audit</option>
-              <option value="CM">Minor</option>
-              <option value="CC">Concentration</option>
+              <option value="CREDIT">Credit</option>
+              <option value="AUDIT">Audit</option>
+              <option value="CREDIT_MINOR">Minor</option>
+              <option value="CREDIT_CONCENTRATION">Concentration</option>
             </select>
           </div>
         </div>
@@ -257,7 +290,7 @@ export default function EnrollmentApprovalsPage() {
                   </div>
 
                   <p className="mt-2 text-sm font-medium text-slate-700">
-                    {request.courseCode} - {request.courseTitle} (Section {request.section})
+                    {request.courseCode} - {request.courseTitle} {request.slot ? `(${request.slot})` : ''}
                   </p>
 
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
@@ -267,19 +300,20 @@ export default function EnrollmentApprovalsPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
-                      Submitted: {request.submittedDate}
+                      Submitted: {new Date(request.submittedDate).toLocaleDateString()}
                     </span>
                     <span>Credits: {request.credits}</span>
+                    <span>Instructor: {request.instructorName}</span>
                   </div>
 
                   <div className="mt-3 rounded-lg bg-white p-3 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-slate-700">Credit Analysis:</span>
-                      {getCreditStatus(request.currentCredits, request.maxCredits, request.credits)}
+                      {getCreditStatus(request.currentCredits, request.credits)}
                     </div>
                     <p className="mt-1 text-slate-600">
                       Current: {request.currentCredits} + New: {request.credits} ={' '}
-                      {request.currentCredits + request.credits} / {request.maxCredits} (Max)
+                      {request.currentCredits + request.credits} / {MAX_CREDITS} (Max)
                     </p>
                   </div>
                 </div>
@@ -287,21 +321,23 @@ export default function EnrollmentApprovalsPage() {
                 <div className="flex shrink-0 flex-col gap-2">
                   <button
                     onClick={() => handleApprove(request.id)}
-                    className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+                    disabled={processing === request.id}
+                    className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
                   >
-                    <CheckCircle className="h-4 w-4" />
+                    {processing === request.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4" />
+                    )}
                     Approve
                   </button>
                   <button
                     onClick={() => handleReject(request.id)}
-                    className="flex items-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                    disabled={processing === request.id}
+                    className="flex items-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                   >
                     <X className="h-4 w-4" />
                     Reject
-                  </button>
-                  <button className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                    <Eye className="h-4 w-4" />
-                    Details
                   </button>
                 </div>
               </div>
@@ -343,9 +379,17 @@ export default function EnrollmentApprovalsPage() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={confirmReject}
-                className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
+                disabled={processing === selectedRequest.id}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
               >
-                Confirm Rejection
+                {processing === selectedRequest.id ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </span>
+                ) : (
+                  'Confirm Rejection'
+                )}
               </button>
               <button
                 onClick={() => {
