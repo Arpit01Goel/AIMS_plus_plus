@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, X, Search } from 'lucide-react';
 
 interface CourseFormData {
@@ -17,16 +18,31 @@ interface CourseFormData {
   practicalHours: string;
   selfStudyHours: string;
   credits: string;
-  instructors: { name: string; isCoordinator: boolean }[];
+  instructors: string[];
   allowedBatches: string[];
 }
 
+interface InstructorOption {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  title?: string;
+  department?: string;
+}
+
+interface CategoryOption {
+  value: string;
+  label: string;
+}
+
 export default function CreateCoursePage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<CourseFormData>({
     courseCode: '',
     courseName: '',
     department: '',
-    category: 'Core',
+    category: '',
     degree: 'B.Tech',
     entryYears: '',
     session: '2025-II',
@@ -42,47 +58,99 @@ export default function CreateCoursePage() {
 
   const [instructorSearch, setInstructorSearch] = useState('');
   const [batchInput, setBatchInput] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [availableInstructors, setAvailableInstructors] = useState<InstructorOption[]>([]);
+  const [loadingInstructors, setLoadingInstructors] = useState(true);
+  const [currentInstructorName, setCurrentInstructorName] = useState<string>('');
 
-  // Sample instructor list (will be fetched from database later)
-  const availableInstructors = [
-    'Dr. Nitin Auluck',
-    'Dr. Rajesh Kumar',
-    'Dr. Priya Sharma',
-    'Dr. Vikram Mehta',
-    'Dr. Anita Verma',
-    'Dr. Amit Singh',
-  ];
+  // Load course categories and instructors from backend
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load categories
+        const catRes = await fetch('/api/courses/categories');
+        const catJson = await catRes.json();
+        if (catRes.ok) {
+          setCategories(catJson.categories || []);
+        }
+        setLoadingCategories(false);
+
+        // Load current instructor profile
+        const profileRes = await fetch('/api/profile');
+        const profileJson = await profileRes.json();
+        console.log('Profile response:', profileJson);
+        if (profileRes.ok && profileJson.profile?.name) {
+          const instructorName = profileJson.profile.name;
+          setCurrentInstructorName(instructorName);
+          // Preselect current instructor
+          setFormData(prev => ({
+            ...prev,
+            instructors: [instructorName]
+          }));
+        }
+
+        setLoadingInstructors(false);
+      } catch (err) {
+        console.error('Failed to load data:', err);
+        setLoadingCategories(false);
+        setLoadingInstructors(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Fetch instructors when user types in search
+  useEffect(() => {
+    const fetchInstructors = async () => {
+      if (instructorSearch.trim().length < 2) {
+        setAvailableInstructors([]);
+        return;
+      }
+
+      try {
+        setLoadingInstructors(true);
+        const res = await fetch(`/api/instructors?search=${encodeURIComponent(instructorSearch)}`);
+        const data = await res.json();
+        if (res.ok) {
+          setAvailableInstructors(data.instructors || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch instructors:', err);
+      } finally {
+        setLoadingInstructors(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchInstructors, 300);
+    return () => clearTimeout(timeoutId);
+  }, [instructorSearch]);
 
   const filteredInstructors = availableInstructors.filter(
     (instructor) =>
-      instructor.toLowerCase().includes(instructorSearch.toLowerCase()) &&
-      !formData.instructors.some((i) => i.name === instructor)
+      !formData.instructors.includes(instructor.name)
   );
 
   const handleAddInstructor = (name: string) => {
     setFormData({
       ...formData,
-      instructors: [...formData.instructors, { name, isCoordinator: formData.instructors.length === 0 }],
+      instructors: [...formData.instructors, name],
     });
     setInstructorSearch('');
   };
 
   const handleRemoveInstructor = (name: string) => {
-    const updatedInstructors = formData.instructors.filter((i) => i.name !== name);
-    // If removing coordinator, make first instructor the coordinator
-    if (updatedInstructors.length > 0 && !updatedInstructors.some((i) => i.isCoordinator)) {
-      updatedInstructors[0].isCoordinator = true;
+    // Prevent removing the current instructor (course creator)
+    if (name === currentInstructorName) {
+      setError('You cannot remove yourself from the course');
+      setTimeout(() => setError(null), 3000);
+      return;
     }
-    setFormData({ ...formData, instructors: updatedInstructors });
-  };
-
-  const handleToggleCoordinator = (name: string) => {
-    setFormData({
-      ...formData,
-      instructors: formData.instructors.map((i) => ({
-        ...i,
-        isCoordinator: i.name === name,
-      })),
+    setFormData({ 
+      ...formData, 
+      instructors: formData.instructors.filter((i) => i !== name) 
     });
   };
 
@@ -103,11 +171,52 @@ export default function CreateCoursePage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Course Data:', formData);
-    // Will integrate with backend API later
-    alert('Course creation will be integrated with backend!');
+    
+    if (submitting) return;
+    
+    // Validation
+    if (!formData.courseCode || !formData.courseName || !formData.credits) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      const ltpsc = calculateLTPSC();
+      
+      const res = await fetch('/api/courses/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseCode: formData.courseCode.toUpperCase(),
+          courseTitle: formData.courseName,
+          department: formData.department,
+          category: formData.category,
+          ltpsc,
+          credits: parseInt(formData.credits),
+          sessionCode: formData.session,
+          slot: formData.slot,
+          capacity: 60, // Default capacity
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to create course offering');
+      }
+
+      alert('Course offering created successfully!');
+      router.push('/instructor/courses');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create course offering');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const calculateLTPSC = () => {
@@ -127,6 +236,13 @@ export default function CreateCoursePage() {
         <p className="mt-3 text-sm leading-relaxed text-slate-600">
           Create a new course offering for enrollment. Fill in all required details below.
         </p>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-4">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
       </div>
 
       {/* Form */}
@@ -174,7 +290,7 @@ export default function CreateCoursePage() {
                 className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
                 <option value="">Select Department</option>
-                <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
                 <option value="Electrical Engineering">Electrical Engineering</option>
                 <option value="Mechanical Engineering">Mechanical Engineering</option>
                 <option value="Mathematics">Mathematics</option>
@@ -191,12 +307,21 @@ export default function CreateCoursePage() {
                 required
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                disabled={loadingCategories}
+                className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
               >
-                <option value="Core">Core</option>
-                <option value="Elective">Elective</option>
-                <option value="Open Elective">Open Elective</option>
-                <option value="Project">Project</option>
+                {loadingCategories ? (
+                  <option>Loading categories...</option>
+                ) : (
+                  <>
+                    <option value="">Select category</option>
+                    {categories.map((cat) => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
 
@@ -336,7 +461,7 @@ export default function CreateCoursePage() {
             Course Instructors <span className="text-red-500">*</span>
           </h2>
           <p className="mt-2 text-sm text-slate-600">
-            Add instructors and mark one as course coordinator
+            Add instructors to teach this course (you are added by default)
           </p>
 
           {/* Search Instructors */}
@@ -344,21 +469,38 @@ export default function CreateCoursePage() {
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search and add instructors..."
+              placeholder="Type to search instructors (min 2 characters)..."
               value={instructorSearch}
               onChange={(e) => setInstructorSearch(e.target.value)}
               className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
-            {instructorSearch && filteredInstructors.length > 0 && (
-              <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-lg">
+            {loadingInstructors && instructorSearch.length >= 2 && (
+              <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
+                <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600"></div>
+                  Searching instructors...
+                </div>
+              </div>
+            )}
+            {!loadingInstructors && instructorSearch.length >= 2 && filteredInstructors.length === 0 && (
+              <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
+                <p className="text-center text-sm text-slate-600">No instructors found</p>
+              </div>
+            )}
+            {!loadingInstructors && instructorSearch && filteredInstructors.length > 0 && (
+              <div className="absolute z-10 mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-lg max-h-60 overflow-y-auto">
                 {filteredInstructors.map((instructor) => (
                   <button
-                    key={instructor}
+                    key={instructor.id}
                     type="button"
-                    onClick={() => handleAddInstructor(instructor)}
-                    className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-indigo-50"
+                    onClick={() => handleAddInstructor(instructor.name)}
+                    className="w-full px-4 py-2.5 text-left text-sm hover:bg-indigo-50 border-b border-slate-100 last:border-b-0"
                   >
-                    {instructor}
+                    <div className="font-medium text-slate-900">{instructor.name}</div>
+                    <div className="text-xs text-slate-500">
+                      {instructor.title && `${instructor.title} • `}
+                      {instructor.department || instructor.email}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -368,39 +510,39 @@ export default function CreateCoursePage() {
           {/* Added Instructors */}
           {formData.instructors.length > 0 && (
             <div className="mt-4 space-y-2">
-              {formData.instructors.map((instructor) => (
-                <div
-                  key={instructor.name}
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-slate-900">{instructor.name}</span>
-                    {instructor.isCoordinator && (
-                      <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-semibold text-indigo-700">
-                        Coordinator
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!instructor.isCoordinator && (
-                      <button
-                        type="button"
-                        onClick={() => handleToggleCoordinator(instructor.name)}
-                        className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                      >
-                        Set as Coordinator
-                      </button>
-                    )}
+              {formData.instructors.map((instructorName) => {
+                const isCurrentUser = instructorName === currentInstructorName;
+                return (
+                  <div
+                    key={instructorName}
+                    className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-slate-900">{instructorName}</span>
+                      {isCurrentUser && (
+                        <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+                          You (Primary)
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
-                      onClick={() => handleRemoveInstructor(instructor.name)}
-                      className="rounded-lg bg-red-100 p-1.5 text-red-600 hover:bg-red-200"
+                      onClick={() => handleRemoveInstructor(instructorName)}
+                      disabled={isCurrentUser}
+                      className="rounded-lg bg-red-100 p-1.5 text-red-600 hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={isCurrentUser ? 'You cannot remove yourself' : 'Remove instructor'}
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+          )}
+
+          {formData.instructors.length === 0 && (
+            <div className="mt-4 text-center rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm text-slate-500">Loading your profile...</p>
             </div>
           )}
         </div>
@@ -456,15 +598,18 @@ export default function CreateCoursePage() {
         <div className="flex items-center justify-end gap-4">
           <button
             type="button"
-            className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            onClick={() => router.push('/instructor/courses')}
+            disabled={submitting}
+            className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
-            Save as Draft
+            Cancel
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+            disabled={submitting}
+            className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            Float Course for Enrollment
+            {submitting ? 'Creating...' : 'Float Course for Enrollment'}
           </button>
         </div>
       </form>

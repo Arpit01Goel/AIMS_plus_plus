@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Filter, Mail, Phone, TrendingUp, Download } from 'lucide-react';
 
 interface Student {
@@ -19,8 +19,28 @@ export default function StudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [courseFilter, setCourseFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [students] = useState<Student[]>([
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const loadStudents = async () => {
+    try {
+      const res = await fetch('/api/courses');
+      const data = await res.json();
+      if (res.ok) {
+        setStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error('Failed to load students:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const oldStudents = [
     {
       id: '1',
       rollNo: '2021CSB1111',
@@ -85,9 +105,9 @@ export default function StudentsPage() {
       course: 'CS701',
       attendance: 72,
       grade: 'B',
-      status: 'dropped',
+      status: 'dropped' as const,
     },
-  ]);
+  ];
 
   const courses = ['CS502', 'CS604', 'CS701'];
 

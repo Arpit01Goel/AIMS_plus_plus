@@ -1,59 +1,50 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Award, BookOpen, Users, Calendar } from 'lucide-react';
 
 export default function InstructorProfilePage() {
-  const instructor = {
-    name: 'Dr. Vikram Mehta',
-    designation: 'Associate Professor',
-    department: 'Computer Science and Engineering',
-    email: 'vikram.mehta@iitrpr.ac.in',
-    phone: '+91 98765 43210',
-    office: 'Main Building, Room 304',
-    specialization: ['Distributed Systems', 'Cloud Computing', 'Parallel Algorithms'],
-    education: [
-      { degree: 'PhD in Computer Science', institution: 'IIT Delhi', year: '2012' },
-      { degree: 'M.Tech in Computer Science', institution: 'IIT Bombay', year: '2008' },
-      { degree: 'B.Tech in Computer Science', institution: 'NIT Trichy', year: '2006' },
-    ],
-    experience: '12+ years in academia',
-    researchInterests: [
-      'Distributed Computing',
-      'Cloud Infrastructure',
-      'High Performance Computing',
-      'Blockchain Technology',
-    ],
+  const [instructor, setInstructor] = useState<any>(null);
+  const [coursesTaught, setCoursesTaught] = useState<any[]>([]);
+  const [publications, setPublications] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const res = await fetch('/api/profile');
+      const data = await res.json();
+      if (res.ok) {
+        setInstructor(data.profile);
+        setCoursesTaught(data.coursesTaught || []);
+        setPublications(data.publications || []);
+        setStats(data.stats || {});
+      }
+    } catch (error) {
+      console.error('Failed to load profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const coursesTaught = [
-    { code: 'CS502', title: 'Data Structures and Algorithms', session: '2025-II' },
-    { code: 'CS604', title: 'Advanced Operating Systems', session: '2025-II' },
-    { code: 'CS701', title: 'Distributed Systems', session: '2025-II' },
-    { code: 'CS450', title: 'Computer Networks', session: '2024-II' },
-    { code: 'CS601', title: 'Advanced Algorithms', session: '2024-I' },
-  ];
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-sm text-slate-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const publications = [
-    {
-      title: 'Efficient Resource Allocation in Cloud Computing Environments',
-      venue: 'IEEE Transactions on Cloud Computing, 2025',
-    },
-    {
-      title: 'Scalable Distributed Consensus Algorithms for Blockchain',
-      venue: 'ACM SIGMOD Conference, 2024',
-    },
-    {
-      title: 'Performance Analysis of Parallel Sorting Algorithms',
-      venue: 'Journal of Parallel and Distributed Computing, 2023',
-    },
-  ];
-
-  const stats = {
-    coursesThisSemester: 3,
-    totalStudents: 105,
-    yearsOfExperience: 12,
-    publications: publications.length,
-  };
+  if (!instructor) {
+    return <div className="text-center text-slate-600">Profile not found</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -61,7 +52,7 @@ export default function InstructorProfilePage() {
       <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex items-start gap-6">
           <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-400 text-3xl font-bold text-white">
-            {instructor.name.split(' ').map((n) => n[0]).join('')}
+            {instructor.name.split(' ').map((n: string) => n[0]).join('')}
           </div>
 
           <div className="flex-1">
@@ -128,7 +119,7 @@ export default function InstructorProfilePage() {
             <h2 className="text-lg font-bold text-slate-900">Education</h2>
           </div>
           <div className="mt-4 space-y-3">
-            {instructor.education.map((edu, idx) => (
+            {(instructor.education || []).map((edu: any, idx: number) => (
               <div
                 key={idx}
                 className="rounded-xl border border-slate-200 bg-slate-50 p-4"
@@ -148,7 +139,7 @@ export default function InstructorProfilePage() {
             <h2 className="text-lg font-bold text-slate-900">Areas of Specialization</h2>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            {instructor.specialization.map((area, idx) => (
+            {(instructor.specialization || []).map((area: string, idx: number) => (
               <span
                 key={idx}
                 className="rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700"
@@ -161,7 +152,7 @@ export default function InstructorProfilePage() {
           <div className="mt-6">
             <h3 className="text-sm font-bold text-slate-900">Research Interests</h3>
             <ul className="mt-3 space-y-2 text-sm text-slate-700">
-              {instructor.researchInterests.map((interest, idx) => (
+              {(instructor.researchInterests || []).map((interest: string, idx: number) => (
                 <li key={idx} className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
                   {interest}
@@ -179,7 +170,7 @@ export default function InstructorProfilePage() {
           <h2 className="text-lg font-bold text-slate-900">Courses Taught</h2>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {coursesTaught.map((course, idx) => (
+          {coursesTaught.map((course: any, idx: number) => (
             <div
               key={idx}
               className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
@@ -203,7 +194,7 @@ export default function InstructorProfilePage() {
           <h2 className="text-lg font-bold text-slate-900">Recent Publications</h2>
         </div>
         <div className="mt-4 space-y-3">
-          {publications.map((pub, idx) => (
+          {publications.map((pub: any, idx: number) => (
             <div
               key={idx}
               className="rounded-xl border border-slate-200 bg-slate-50 p-4"

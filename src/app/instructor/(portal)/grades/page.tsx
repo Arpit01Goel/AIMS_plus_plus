@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, Download, Search, Filter, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface Student {
@@ -18,25 +18,166 @@ interface Course {
   students: number;
 }
 
+interface GradeOption {
+  value: string;
+  label: string;
+}
+
 export default function GradesPage() {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [gradeFilter, setGradeFilter] = useState<string>('all');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [gradeOptions, setGradeOptions] = useState<GradeOption[]>([]);
 
-  const courses: Course[] = [
-    { id: '1', code: 'CS502', title: 'Data Structures and Algorithms', students: 45 },
-    { id: '2', code: 'CS604', title: 'Advanced Operating Systems', students: 32 },
-    { id: '3', code: 'CS701', title: 'Distributed Systems', students: 28 },
-  ];
+  const formatGradeLabel = (grade: string) => {
+    if (!grade) return '';
+    // Convert database format (A_MINUS) to display format (A-)
+    return grade.replace('_MINUS', '-').replace('_PLUS', '+');
+  };
 
-  const [students, setStudents] = useState<Student[]>([
-    { id: '1', rollNo: '2021CSB1111', name: 'Rahul Sharma', grade: 'A', status: 'submitted' },
-    { id: '2', rollNo: '2021CSB1155', name: 'Priya Patel', grade: 'A-', status: 'submitted' },
-    { id: '3', rollNo: '2021CSB1089', name: 'Amit Kumar', grade: 'B+', status: 'submitted' },
-    { id: '4', rollNo: '2021CSB1234', name: 'Sneha Singh', grade: '', status: 'pending' },
-    { id: '5', rollNo: '2021CSB1167', name: 'Vikram Mehta', grade: 'A', status: 'verified' },
-  ]);
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadStudents();
+    }
+  }, [selectedCourse]);
+
+  const loadCourses = async () => {
+    try {
+      const [coursesRes, gradesRes] = await Promise.all([
+        fetch('/api/courses'),
+        fetch('/api/grades/options')
+      ]);
+      
+      const coursesData = await coursesRes.json();
+      const gradesData = await gradesRes.json();
+      
+      if (coursesRes.ok) {
+        setCourses(coursesData.courses || []);
+      }
+      
+      if (gradesRes.ok && gradesData.grades) {
+        setGradeOptions(gradesData.grades);
+      }
+    } catch (error) {
+      console.error('Failed to load data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      const res = await fetch(`/api/grades?offeringId=${selectedCourse}`);
+      const data = await res.json();
+      if (res.ok && data.students) {
+        setStudents(data.students.map((s: any) => ({
+          id: s.enrollmentId,
+          rollNo: s.entryNumber,
+          name: s.name,
+          grade: s.grade || '',
+          status: s.grade ? 'submitted' : 'pending',
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to load students:', error);
+    }
+  };
+
+  const handleSubmitGrades = async () => {
+    if (!selectedCourse || submitting) return;
+
+    // Check if all students have grades
+    const missingGrades = students.filter(s => !s.grade);
+    if (missingGrades.length > 0) {
+      alert(`Please assign grades to all students. ${missingGrades.length} student(s) are missing grades.`);
+      return;
+    }
+
+    if (!confirm('Are you sure you want to submit these grades for verification? This action will finalize the grades.')) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const grades = students.map(s => ({
+        enrollmentId: s.id,
+        grade: s.grade,
+      }));
+
+      const res = await fetch('/api/grades', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offeringId: selectedCourse,
+          grades,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit grades');
+      }
+
+      alert(data.message || 'Grades submitted successfully!');
+      // Reload students to reflect updated status
+      await loadStudents();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to submit grades');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!selectedCourse || submitting) return;
+
+    try {
+      setSubmitting(true);
+      const grades = students
+        .filter(s => s.grade) // Only save students with grades
+        .map(s => ({
+          enrollmentId: s.id,
+          grade: s.grade,
+        }));
+
+      if (grades.length === 0) {
+        alert('No grades to save');
+        setSubmitting(false);
+        return;
+      }
+
+      const res = await fetch('/api/grades', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offeringId: selectedCourse,
+          grades,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save grades');
+      }
+
+      alert(data.message || 'Grades saved as draft!');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to save grades');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,27 +188,40 @@ export default function GradesPage() {
   };
 
   const handleDownloadTemplate = () => {
-    // CSV template download logic (will be integrated with backend)
-    const csvContent = 'ROLL_NO,NAME,GRADE\n2021CSB1111,Rahul Sharma,\n2021CSB1155,Priya Patel,';
+    if (!selectedCourse || students.length === 0) {
+      alert('Please select a course with enrolled students first');
+      return;
+    }
+    
+    // Generate CSV template with actual student data
+    const csvRows = students.map((s) => `${s.rollNo},${s.name},`);
+    const csvContent = `ROLL_NO,NAME,GRADE\n${csvRows.join('\n')}`;
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedCourse || 'course'}_grade_template.csv`;
+    a.download = `${selectedCourse}_grade_template.csv`;
     a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const handleDownloadGrades = () => {
-    // Download submitted grades
+    if (!selectedCourse || students.length === 0) {
+      alert('No grades to download');
+      return;
+    }
+    
+    // Download submitted grades with actual data
     const csvContent = students
-      .map((s) => `${s.rollNo},${s.name},${s.grade}`)
+      .map((s) => `${s.rollNo},${s.name},${formatGradeLabel(s.grade) || 'Not Assigned'}`)
       .join('\n');
     const blob = new Blob([`ROLL_NO,NAME,GRADE\n${csvContent}`], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedCourse || 'course'}_grades.csv`;
+    a.download = `${selectedCourse}_grades.csv`;
     a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const handleGradeChange = (studentId: string, newGrade: string) => {
@@ -133,7 +287,7 @@ export default function GradesPage() {
           >
             <option value="">-- Select a course --</option>
             {courses.map((course) => (
-              <option key={course.id} value={course.code}>
+              <option key={course.id} value={course.id}>
                 {course.code} - {course.title} ({course.students} students)
               </option>
             ))}
@@ -273,19 +427,11 @@ export default function GradesPage() {
                           className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         >
                           <option value="">-- Select --</option>
-                          <option value="A+">A+</option>
-                          <option value="A">A</option>
-                          <option value="A-">A-</option>
-                          <option value="B+">B+</option>
-                          <option value="B">B</option>
-                          <option value="B-">B-</option>
-                          <option value="C+">C+</option>
-                          <option value="C">C</option>
-                          <option value="C-">C-</option>
-                          <option value="D">D</option>
-                          <option value="F">F</option>
-                          <option value="I">Incomplete</option>
-                          <option value="W">Withdrawn</option>
+                          {gradeOptions.map((grade) => (
+                            <option key={grade.value} value={grade.value}>
+                              {grade.label}
+                            </option>
+                          ))}
                         </select>
                       </td>
                       <td className="px-4 py-3">{getStatusBadge(student.status)}</td>
@@ -297,11 +443,19 @@ export default function GradesPage() {
 
             {/* Submit Button */}
             <div className="mt-6 flex justify-end gap-4">
-              <button className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                Save Draft
+              <button 
+                onClick={handleSaveDraft}
+                disabled={submitting}
+                className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? 'Saving...' : 'Save Draft'}
               </button>
-              <button className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
-                Submit Grades for Verification
+              <button 
+                onClick={handleSubmitGrades}
+                disabled={submitting}
+                className="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submitting ? 'Submitting...' : 'Submit Grades for Verification'}
               </button>
             </div>
           </div>

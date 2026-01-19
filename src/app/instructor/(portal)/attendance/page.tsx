@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Users, Download, TrendingUp, Search } from 'lucide-react';
 
 interface Student {
@@ -24,12 +24,44 @@ export default function AttendancePage() {
     new Date().toISOString().split('T')[0]
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const courses: Course[] = [
-    { id: '1', code: 'CS502', title: 'Data Structures and Algorithms', students: 45 },
-    { id: '2', code: 'CS604', title: 'Advanced Operating Systems', students: 32 },
-    { id: '3', code: 'CS701', title: 'Distributed Systems', students: 28 },
-  ];
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCourse) {
+      loadStudents();
+    }
+  }, [selectedCourse]);
+
+  const loadCourses = async () => {
+    try {
+      const res = await fetch('/api/courses');
+      const data = await res.json();
+      if (res.ok) {
+        setCourses(data.courses || []);
+      }
+    } catch (error) {
+      console.error('Failed to load courses:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadStudents = async () => {
+    try {
+      const res = await fetch(`/api/attendance?offeringId=${selectedCourse}`);
+      const data = await res.json();
+      if (res.ok) {
+        setStudents(data.students || []);
+      }
+    } catch (error) {
+      console.error('Failed to load students:', error);
+    }
+  };
 
   const [students, setStudents] = useState<Student[]>([
     {

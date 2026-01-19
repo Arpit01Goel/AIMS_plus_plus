@@ -1,23 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { BookOpen, Users, Clock, ChevronRight, Search, Filter } from 'lucide-react';
+import { BookOpen, Users, Clock, ChevronRight, Search, Filter, AlertCircle } from 'lucide-react';
 
 interface Course {
   id: string;
-  courseCode: string;
+  code: string;
   title: string;
   ltpsc: string;
   credits: number;
-  status: 'enrolling' | 'ongoing' | 'completed';
+  category: string;
+  status: string;
   session: string;
-  enrolledStudents: number;
-  maxCapacity: number;
-  department: string;
+  students: number;
+  capacity: number;
   slot: string;
-  section: string;
-  instructors: string[];
+  section?: string;
+  pendingApprovals?: number;
 }
 
 // Card Component
@@ -30,101 +30,105 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
 }
 
 export default function InstructorCoursesPage() {
-  const [courses] = useState<Course[]>([
-    {
-      id: '1',
-      courseCode: 'CS502',
-      title: 'DATA STRUCTURES AND ALGORITHMS',
-      ltpsc: '3-1-0-6-4',
-      credits: 4,
-      status: 'ongoing',
-      session: '2025-II',
-      enrolledStudents: 45,
-      maxCapacity: 60,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'A1',
-      section: 'A',
-      instructors: ['Dr. Rajesh Kumar', 'Dr. Priya Sharma'],
-    },
-    {
-      id: '2',
-      courseCode: 'CS604',
-      title: 'ADVANCED OPERATING SYSTEMS',
-      ltpsc: '3-0-0-6-3',
-      credits: 3,
-      status: 'ongoing',
-      session: '2025-II',
-      enrolledStudents: 32,
-      maxCapacity: 50,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'B2',
-      section: 'B',
-      instructors: ['Nitin Auluck'],
-    },
-    {
-      id: '3',
-      courseCode: 'CS701',
-      title: 'DISTRIBUTED SYSTEMS',
-      ltpsc: '3-0-0-6-3',
-      credits: 3,
-      status: 'ongoing',
-      session: '2025-II',
-      enrolledStudents: 28,
-      maxCapacity: 40,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'C1',
-      section: 'A',
-      instructors: ['Dr. Vikram Mehta'],
-    },
-    {
-      id: '4',
-      courseCode: 'CS450',
-      title: 'COMPUTER NETWORKS',
-      ltpsc: '3-0-2-4-4',
-      credits: 4,
-      status: 'completed',
-      session: '2024-II',
-      enrolledStudents: 52,
-      maxCapacity: 60,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'D1',
-      section: 'A',
-      instructors: ['Dr. Vikram Mehta'],
-    },
-  ]);
-
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ongoing' | 'enrolling' | 'completed'>('all');
 
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  const loadCourses = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/courses');
+      const json = await res.json();
+      
+      console.log('API Response:', { status: res.status, ok: res.ok, data: json });
+
+      if (!res.ok) throw new Error(json.error || 'Failed to load courses');
+
+      console.log('Setting courses:', json.courses?.length || 0, 'courses');
+      setCourses(json.courses || []);
+      setError(null);
+    } catch (err) {
+      console.error('Load courses error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load courses');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+          <p className="mt-4 text-sm text-slate-600">Loading courses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <div className="flex items-center gap-3 text-red-600">
+          <AlertCircle className="h-5 w-5" />
+          <div>
+            <h3 className="font-semibold">Error loading courses</h3>
+            <p className="text-sm text-red-500">{error}</p>
+          </div>
+        </div>
+        <button
+          onClick={loadCourses}
+          className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+        >
+          Retry
+        </button>
+      </Card>
+    );
+  }
+
+  console.log('Courses state:', courses.length, 'courses');
+
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
-      course.courseCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
+    const statusLower = course.status?.toLowerCase() || 'enrolling';
+    const matchesStatus = statusFilter === 'all' || 
+                         statusLower === statusFilter ||
+                         (statusFilter === 'ongoing' && statusLower === 'running');
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: Course['status']) => {
-    const styles = {
+    const statusLower = status?.toLowerCase() || 'enrolling';
+    const styles: Record<string, string> = {
       enrolling: 'bg-green-100 text-green-800 border-green-200',
       ongoing: 'bg-blue-100 text-blue-800 border-blue-200',
+      running: 'bg-blue-100 text-blue-800 border-blue-200',
       completed: 'bg-slate-100 text-slate-800 border-slate-200',
     };
-    const labels = {
+    const labels: Record<string, string> = {
       enrolling: 'Enrolling',
       ongoing: 'Ongoing',
+      running: 'Running',
       completed: 'Completed',
     };
     return (
-      <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${styles[status]}`}>
-        {labels[status]}
+      <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${styles[statusLower] || styles.enrolling}`}>
+        {labels[statusLower] || statusLower}
       </span>
     );
   };
 
-  const ongoingCourses = filteredCourses.filter((c) => c.status === 'ongoing');
-  const enrollingCourses = filteredCourses.filter((c) => c.status === 'enrolling');
-  const completedCourses = filteredCourses.filter((c) => c.status === 'completed');
+  const ongoingCourses = filteredCourses.filter((c) => c.status?.toLowerCase() === 'ongoing' || c.status?.toLowerCase() === 'running');
+  const enrollingCourses = filteredCourses.filter((c) => c.status?.toLowerCase() === 'enrolling');
+  const completedCourses = filteredCourses.filter((c) => c.status?.toLowerCase() === 'completed');
 
   return (
     <div className="space-y-6">
@@ -137,7 +141,7 @@ export default function InstructorCoursesPage() {
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">My Courses</h1>
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
-              View and manage all courses you're teaching this semester
+              View and manage all courses you&apos;re teaching this semester
             </p>
           </div>
           <Link
@@ -187,7 +191,7 @@ export default function InstructorCoursesPage() {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-slate-600">
-              {filteredCourses.reduce((sum, c) => sum + c.enrolledStudents, 0)}
+              {filteredCourses.reduce((sum, c) => sum + c.students, 0)}
             </p>
             <p className="mt-1 text-xs font-medium text-slate-600">Total Students</p>
           </div>
@@ -249,9 +253,9 @@ function CourseCard({
   getStatusBadge,
 }: {
   course: Course;
-  getStatusBadge: (status: Course['status']) => JSX.Element;
+  getStatusBadge: (status: Course['status']) => React.ReactElement;
 }) {
-  const enrollmentPercentage = (course.enrolledStudents / course.maxCapacity) * 100;
+  const enrollmentPercentage = (course.students / course.capacity) * 100;
 
   return (
     <div className="group rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-indigo-300 hover:bg-indigo-50/50">
@@ -265,23 +269,32 @@ function CourseCard({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-slate-900">{course.courseCode}</h3>
-                  <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
-                    Sec {course.section}
-                  </span>
+                  <h3 className="text-lg font-bold text-slate-900">{course.code}</h3>
+                  {course.section && (
+                    <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+                      Sec {course.section}
+                    </span>
+                  )}
                   {getStatusBadge(course.status)}
+                  {course.pendingApprovals && course.pendingApprovals > 0 && (
+                    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-800">
+                      {course.pendingApprovals} pending
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 text-sm font-medium text-slate-700">{course.title}</p>
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
                   <span className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
-                    {course.enrolledStudents}/{course.maxCapacity} students
+                    {course.students}/{course.capacity} students
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {course.slot}
-                  </span>
+                  {course.slot && (
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {course.slot}
+                    </span>
+                  )}
                   <span>{course.session}</span>
                   <span className="font-medium">{course.credits} credits</span>
                 </div>
@@ -297,20 +310,12 @@ function CourseCard({
                   <div className="mt-1.5 h-1.5 rounded-full bg-slate-200">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400"
-                      style={{ width: `${enrollmentPercentage}%` }}
+                      style={{ width: `${Math.min(enrollmentPercentage, 100)}%` }}
                     />
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Instructors */}
-            {course.instructors.length > 1 && (
-              <div className="mt-3 flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-500">Co-instructors:</span>
-                <span className="text-xs text-slate-600">{course.instructors.join(', ')}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -324,7 +329,7 @@ function CourseCard({
             <ChevronRight className="h-4 w-4" />
           </Link>
           <Link
-            href={`/instructor/courses/${course.id}/enrollments`}
+            href={`/instructor/pending`}
             className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50"
           >
             Enrollments

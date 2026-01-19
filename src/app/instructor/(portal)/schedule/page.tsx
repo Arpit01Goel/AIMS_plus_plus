@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Clock, MapPin, Users, Calendar as CalendarIcon } from 'lucide-react';
 
 interface ClassSchedule {
@@ -18,8 +18,28 @@ interface ClassSchedule {
 
 export default function SchedulePage() {
   const [selectedWeek, setSelectedWeek] = useState<'current' | 'next'>('current');
+  const [schedule, setSchedule] = useState<ClassSchedule[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const schedule: ClassSchedule[] = [
+  useEffect(() => {
+    loadSchedule();
+  }, []);
+
+  const loadSchedule = async () => {
+    try {
+      const res = await fetch('/api/schedule');
+      const data = await res.json();
+      if (res.ok) {
+        setSchedule(data.schedule || []);
+      }
+    } catch (error) {
+      console.error('Failed to load schedule:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const oldSchedule: ClassSchedule[] = [
     {
       id: '1',
       day: 'Monday',
@@ -115,6 +135,9 @@ export default function SchedulePage() {
 
   const totalClasses = schedule.length;
   const hoursPerWeek = schedule.reduce((sum, item) => {
+    if (!item.time || typeof item.time !== 'string' || !item.time.includes('-')) {
+      return sum;
+    }
     const [start, end] = item.time.split('-').map((t) => {
       const [h, m] = t.trim().split(':');
       return parseInt(h) * 60 + parseInt(m);

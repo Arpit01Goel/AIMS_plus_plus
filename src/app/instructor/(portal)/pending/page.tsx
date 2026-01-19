@@ -1,145 +1,112 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AlertCircle, Check, X, Clock, User } from 'lucide-react';
 
 interface PendingAction {
   id: string;
-  type: 'enrollment' | 'grade_submission' | 'course_approval';
-  student?: {
-    rollNo: string;
+  student: {
+    id: string;
+    entryNumber: string;
     name: string;
+    program: string;
   };
   course: {
     code: string;
     title: string;
+    session: string;
   };
-  details: string;
-  timestamp: string;
-  priority: 'high' | 'medium' | 'low';
+  enrollmentType: string;
+  createdAt: string;
 }
 
 export default function PendingActionsPage() {
-  const [actions, setActions] = useState<PendingAction[]>([
-    {
-      id: '1',
-      type: 'enrollment',
-      student: {
-        rollNo: '2021CSB1111',
-        name: 'Rahul Sharma',
-      },
-      course: {
-        code: 'CS604',
-        title: 'Advanced Operating Systems',
-      },
-      details: 'Student requests enrollment approval for CS604',
-      timestamp: '2 hours ago',
-      priority: 'high',
-    },
-    {
-      id: '2',
-      type: 'enrollment',
-      student: {
-        rollNo: '2021CSB1155',
-        name: 'Priya Patel',
-      },
-      course: {
-        code: 'CS701',
-        title: 'Distributed Systems',
-      },
-      details: 'Student requests enrollment approval for CS701',
-      timestamp: '5 hours ago',
-      priority: 'medium',
-    },
-    {
-      id: '3',
-      type: 'grade_submission',
-      course: {
-        code: 'CS502',
-        title: 'Data Structures and Algorithms',
-      },
-      details: 'Mid-term grades submission deadline approaching',
-      timestamp: 'Due: Jan 15, 2026',
-      priority: 'high',
-    },
-    {
-      id: '4',
-      type: 'enrollment',
-      student: {
-        rollNo: '2021CSB1089',
-        name: 'Amit Kumar',
-      },
-      course: {
-        code: 'CS604',
-        title: 'Advanced Operating Systems',
-      },
-      details: 'Student requests enrollment approval for CS604',
-      timestamp: '1 day ago',
-      priority: 'low',
-    },
-    {
-      id: '5',
-      type: 'course_approval',
-      course: {
-        code: 'CS801',
-        title: 'Advanced Machine Learning',
-      },
-      details: 'Course offering awaiting HoD approval',
-      timestamp: '3 days ago',
-      priority: 'medium',
-    },
-  ]);
+  const [actions, setActions] = useState<PendingAction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState<string | null>(null);
 
-  const [filter, setFilter] = useState<'all' | 'enrollment' | 'grade_submission' | 'course_approval'>('all');
+  useEffect(() => {
+    loadPendingActions();
+  }, []);
 
-  const handleApprove = (id: string) => {
-    setActions(actions.filter((action) => action.id !== id));
-    // Will integrate with backend API
-    alert('Approval will be integrated with backend!');
+  const loadPendingActions = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/enrollments');
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.error || 'Failed to load pending actions');
+
+      setActions(json.pending || []);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load pending actions');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id: string) => {
-    setActions(actions.filter((action) => action.id !== id));
-    // Will integrate with backend API
-    alert('Rejection will be integrated with backend!');
+  const handleAction = async (enrollmentId: string, action: 'approve' | 'reject') => {
+    if (processing) return;
+
+    try {
+      setProcessing(enrollmentId);
+      const res = await fetch('/api/enrollments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enrollmentId, action }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Action failed');
+
+      // Remove from list on success
+      setActions((prev) => prev.filter((a) => a.id !== enrollmentId));
+      alert(json.message);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Action failed');
+    } finally {
+      setProcessing(null);
+    }
   };
 
-  const filteredActions = actions.filter(
-    (action) => filter === 'all' || action.type === filter
-  );
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+          <p className="mt-4 text-sm text-slate-600">Loading pending actions...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const getTypeLabel = (type: PendingAction['type']) => {
-    const labels = {
-      enrollment: 'Enrollment Request',
-      grade_submission: 'Grade Submission',
-      course_approval: 'Course Approval',
-    };
-    return labels[type];
-  };
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <div className="flex items-center gap-3 text-red-600">
+          <AlertCircle className="h-5 w-5" />
+          <div>
+            <h3 className="font-semibold">Error loading pending actions</h3>
+            <p className="text-sm text-red-500">{error}</p>
+          </div>
+        </div>
+        <button
+          onClick={loadPendingActions}
+          className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
-  const getTypeColor = (type: PendingAction['type']) => {
-    const colors = {
-      enrollment: 'bg-blue-100 text-blue-800 border-blue-200',
-      grade_submission: 'bg-orange-100 text-orange-800 border-orange-200',
-      course_approval: 'bg-purple-100 text-purple-800 border-purple-200',
-    };
-    return colors[type];
-  };
-
-  const getPriorityColor = (priority: PendingAction['priority']) => {
-    const colors = {
-      high: 'bg-red-100 text-red-800',
-      medium: 'bg-yellow-100 text-yellow-800',
-      low: 'bg-green-100 text-green-800',
-    };
-    return colors[priority];
-  };
+  const getTypeLabel = (type: string) => 'Enrollment Request';
+  const getTypeColor = (type: string) => 'bg-blue-100 text-blue-800 border-blue-200';
 
   const stats = {
     all: actions.length,
-    enrollment: actions.filter((a) => a.type === 'enrollment').length,
-    grade_submission: actions.filter((a) => a.type === 'grade_submission').length,
-    course_approval: actions.filter((a) => a.type === 'course_approval').length,
   };
 
   return (
@@ -157,55 +124,21 @@ export default function PendingActionsPage() {
         </p>
 
         {/* Stats */}
-        <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-4">
+        <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-2">
           <div className="text-center">
             <p className="text-2xl font-bold text-slate-900">{stats.all}</p>
             <p className="mt-1 text-xs font-medium text-slate-600">Total Pending</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.enrollment}</p>
-            <p className="mt-1 text-xs font-medium text-slate-600">Enrollments</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-orange-600">
-              {stats.grade_submission}
-            </p>
-            <p className="mt-1 text-xs font-medium text-slate-600">Grade Submissions</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-purple-600">
-              {stats.course_approval}
-            </p>
-            <p className="mt-1 text-xs font-medium text-slate-600">Course Approvals</p>
+            <p className="text-2xl font-bold text-blue-600">{stats.all}</p>
+            <p className="mt-1 text-xs font-medium text-slate-600">Enrollment Requests</p>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto rounded-xl border border-slate-200 bg-white p-4">
-        {[
-          { value: 'all', label: 'All Actions' },
-          { value: 'enrollment', label: 'Enrollments' },
-          { value: 'grade_submission', label: 'Grade Submissions' },
-          { value: 'course_approval', label: 'Course Approvals' },
-        ].map((option) => (
-          <button
-            key={option.value}
-            onClick={() => setFilter(option.value as typeof filter)}
-            className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition ${
-              filter === option.value
-                ? 'bg-indigo-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-
       {/* Actions List */}
       <div className="space-y-4">
-        {filteredActions.map((action) => (
+        {actions.map((action) => (
           <div
             key={action.id}
             className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-indigo-300"
@@ -218,42 +151,39 @@ export default function PendingActionsPage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`rounded-full border px-3 py-1 text-xs font-semibold ${getTypeColor(
-                        action.type
-                      )}`}
-                    >
-                      {getTypeLabel(action.type)}
+                    <span className="rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                      Enrollment Request
                     </span>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${getPriorityColor(
-                        action.priority
-                      )}`}
-                    >
-                      {action.priority.toUpperCase()}
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      {action.enrollmentType}
                     </span>
                   </div>
 
-                  {action.student && (
-                    <div className="mt-3 flex items-center gap-2">
-                      <User className="h-4 w-4 text-slate-400" />
-                      <p className="text-sm font-semibold text-slate-900">
-                        {action.student.name}
-                      </p>
-                      <span className="text-sm text-slate-600">
-                        ({action.student.rollNo})
-                      </span>
-                    </div>
-                  )}
+                  <div className="mt-3 flex items-center gap-2">
+                    <User className="h-4 w-4 text-slate-400" />
+                    <p className="text-sm font-semibold text-slate-900">
+                      {action.student.name}
+                    </p>
+                    <span className="text-sm text-slate-600">
+                      ({action.student.entryNumber})
+                    </span>
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                      {action.student.program}
+                    </span>
+                  </div>
 
                   <p className="mt-2 text-base font-semibold text-slate-900">
                     {action.course.code} - {action.course.title}
                   </p>
-                  <p className="mt-1 text-sm text-slate-600">{action.details}</p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Session: <span className="font-medium">{action.course.session}</span>
+                  </p>
 
-                  <div className="mt-3 flex items-center gap-1 text-xs text-slate-500">
-                    <Clock className="h-3.5 w-3.5" />
-                    {action.timestamp}
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                      <Clock className="h-3.5 w-3.5" />
+                      {new Date(action.createdAt).toLocaleString()}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -261,18 +191,20 @@ export default function PendingActionsPage() {
               {/* Action Buttons */}
               <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
                 <button
-                  onClick={() => handleApprove(action.id)}
-                  className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700"
+                  onClick={() => handleAction(action.id, 'approve')}
+                  disabled={processing === action.id}
+                  className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
                 >
                   <Check className="h-4 w-4" />
-                  Approve
+                  {processing === action.id ? 'Processing...' : 'Approve'}
                 </button>
                 <button
-                  onClick={() => handleReject(action.id)}
-                  className="flex items-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                  onClick={() => handleAction(action.id, 'reject')}
+                  disabled={processing === action.id}
+                  className="flex items-center gap-2 rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                 >
                   <X className="h-4 w-4" />
-                  Reject
+                  {processing === action.id ? 'Processing...' : 'Reject'}
                 </button>
               </div>
             </div>
@@ -281,14 +213,14 @@ export default function PendingActionsPage() {
       </div>
 
       {/* No Actions */}
-      {filteredActions.length === 0 && (
+      {actions.length === 0 && !loading && (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
           <Check className="mx-auto h-16 w-16 text-green-300" />
           <h3 className="mt-4 text-lg font-semibold text-slate-900">
             All Caught Up!
           </h3>
           <p className="mt-2 text-sm text-slate-600">
-            No pending actions at the moment. Check back later for new requests.
+            No pending enrollment requests at the moment. Check back later for new requests.
           </p>
         </div>
       )}

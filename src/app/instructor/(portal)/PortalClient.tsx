@@ -21,15 +21,10 @@ import {
 } from "lucide-react";
 
 const navTabs: NavTab[] = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/instructor/dashboard" },
   { name: "My Courses", icon: BookOpen, href: "/instructor/courses" },
   { name: "Create Course", icon: GraduationCap, href: "/instructor/create-course" },
   { name: "Grades", icon: FileText, href: "/instructor/grades" },
-  { name: "Attendance", icon: ClipboardCheck, href: "/instructor/attendance" },
   { name: "Pending Actions", icon: AlertCircle, href: "/instructor/pending" },
-  { name: "Students", icon: Users, href: "/instructor/students" },
-  { name: "Schedule", icon: CalendarDays, href: "/instructor/schedule" },
-  { name: "Profile", icon: User, href: "/instructor/profile" },
 ];
 
 type NavTab = {

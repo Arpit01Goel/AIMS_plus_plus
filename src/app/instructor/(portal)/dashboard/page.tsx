@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { AlertCircle, BookOpen, Users, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 
@@ -34,92 +35,87 @@ function Stat({
   );
 }
 
-const activeCourses = [
-  {
-    code: 'CS502',
-    title: 'Data Structures and Algorithms',
-    students: 45,
-    section: 'A',
-    session: '2025-II',
-  },
-  {
-    code: 'CS604',
-    title: 'Advanced Operating Systems',
-    students: 32,
-    section: 'B',
-    session: '2025-II',
-  },
-  {
-    code: 'CS701',
-    title: 'Distributed Systems',
-    students: 28,
-    section: 'A',
-    session: '2025-II',
-  },
-];
+interface Course {
+  id: string;
+  code: string;
+  title: string;
+  students: number;
+  section: string;
+  session: string;
+}
 
-const pendingActions = [
-  {
-    type: 'Enrollment Request',
-    student: 'Rahul Sharma (2021CSB1111)',
-    course: 'CS604 - Advanced Operating Systems',
-    time: '2 hours ago',
-  },
-  {
-    type: 'Grade Submission',
-    student: 'Mid-term grades for CS502',
-    course: 'Due: Jan 15, 2026',
-    time: 'Deadline approaching',
-  },
-  {
-    type: 'Enrollment Request',
-    student: 'Priya Patel (2021CSB1155)',
-    course: 'CS701 - Distributed Systems',
-    time: '5 hours ago',
-  },
-];
+interface PendingAction {
+  type: string;
+  student: string;
+  course: string;
+  time: string;
+  id?: string;
+}
 
-const upcomingClasses = [
-  {
-    time: '09:00 AM',
-    course: 'CS502 - Data Structures',
-    location: 'LHC-101',
-    section: 'Section A',
-  },
-  {
-    time: '02:00 PM',
-    course: 'CS604 - Operating Systems',
-    location: 'LHC-205',
-    section: 'Section B',
-  },
-  {
-    time: '04:30 PM',
-    course: 'CS701 - Distributed Systems',
-    location: 'Online',
-    section: 'Section A',
-  },
-];
+interface UpcomingClass {
+  time: string;
+  course: string;
+  location: string;
+  section: string;
+}
 
-const recentActivity = [
-  {
-    action: 'Uploaded grades for CS502 Quiz-2',
-    timestamp: '2 hours ago',
-  },
-  {
-    action: 'Approved 3 enrollment requests for CS604',
-    timestamp: '5 hours ago',
-  },
-  {
-    action: 'Posted assignment for CS701',
-    timestamp: 'Yesterday',
-  },
-  {
-    action: 'Updated course materials for CS502',
-    timestamp: '2 days ago',
-  },
-];
+interface DashboardStats {
+  activeCourses: number;
+  totalStudents: number;
+  pendingApprovals: number;
+  classesToday: number;
+}
 
 export default function InstructorDashboard() {
+  const [activeCourses, setActiveCourses] = useState<Course[]>([]);
+  const [pendingActions, setPendingActions] = useState<PendingAction[]>([]);
+  const [upcomingClasses, setUpcomingClasses] = useState<UpcomingClass[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    activeCourses: 0,
+    totalStudents: 0,
+    pendingApprovals: 0,
+    classesToday: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const res = await fetch('/api/courses');
+      const data = await res.json();
+      
+      if (res.ok) {
+        setActiveCourses(data.courses || []);
+        setPendingActions(data.pendingActions || []);
+        setUpcomingClasses(data.upcomingClasses || []);
+        setStats(data.stats || {
+          activeCourses: 0,
+          totalStudents: 0,
+          pendingApprovals: 0,
+          classesToday: 0,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-sm text-slate-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
@@ -136,10 +132,10 @@ export default function InstructorDashboard() {
 
         {/* Stats Grid */}
         <div className="mt-8 grid gap-6 rounded-xl border border-slate-100 bg-slate-50 p-6 sm:grid-cols-4">
-          <Stat label="Active Courses" value="3" sub="This Semester" />
-          <Stat label="Total Students" value="105" sub="Across All Courses" />
-          <Stat label="Pending Actions" value="3" sub="Require Attention" />
-          <Stat label="Avg. Attendance" value="94%" sub="Past 30 Days" />
+          <Stat label="Active Courses" value={stats.activeCourses.toString()} sub="This Semester" />
+          <Stat label="Total Students" value={stats.totalStudents.toString()} sub="Across All Courses" />
+          <Stat label="Pending Actions" value={stats.pendingApprovals.toString()} sub="Require Attention" />
+          <Stat label="Classes Today" value={stats.classesToday.toString()} sub="Scheduled" />
         </div>
       </div>
 
@@ -149,44 +145,48 @@ export default function InstructorDashboard() {
         <div className="space-y-6 lg:col-span-2">
           {/* Active Courses */}
           <Card title="Active Courses">
-            <div className="space-y-3">
-              {activeCourses.map((course) => (
-                <Link
-                  key={course.code}
-                  href={`/instructor/courses/${course.code}`}
-                  className="block"
-                >
-                  <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 transition hover:border-indigo-300 hover:bg-indigo-50">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100">
-                        <BookOpen className="h-6 w-6 text-indigo-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-base font-bold text-slate-900">
-                            {course.code}
-                          </p>
-                          <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
-                            Sec {course.section}
-                          </span>
+            {activeCourses.length > 0 ? (
+              <div className="space-y-3">
+                {activeCourses.map((course) => (
+                  <Link
+                    key={course.id}
+                    href={`/instructor/courses/${course.id}`}
+                    className="block"
+                  >
+                    <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 transition hover:border-indigo-300 hover:bg-indigo-50">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100">
+                          <BookOpen className="h-6 w-6 text-indigo-600" />
                         </div>
-                        <p className="mt-1 text-sm text-slate-600">{course.title}</p>
-                        <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3.5 w-3.5" />
-                            {course.students} students
-                          </span>
-                          <span>{course.session}</span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="text-base font-bold text-slate-900">
+                              {course.code}
+                            </p>
+                            <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
+                              Sec {course.section}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm text-slate-600">{course.title}</p>
+                          <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3.5 w-3.5" />
+                              {course.students} students
+                            </span>
+                            <span>{course.session}</span>
+                          </div>
                         </div>
                       </div>
+                      <button className="rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50">
+                        Manage
+                      </button>
                     </div>
-                    <button className="rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-50">
-                      Manage
-                    </button>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-4">No active courses</p>
+            )}
             <Link
               href="/instructor/courses"
               className="mt-4 block text-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
@@ -197,51 +197,35 @@ export default function InstructorDashboard() {
 
           {/* Today's Schedule */}
           <Card title="Today's Schedule">
-            <div className="space-y-3">
-              {upcomingClasses.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100">
-                      <Clock className="h-5 w-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
-                        {item.time}
-                      </p>
-                      <p className="mt-1 text-base font-semibold text-slate-900">
-                        {item.course}
-                      </p>
-                      <p className="mt-0.5 text-sm text-slate-600">
-                        {item.location} · {item.section}
-                      </p>
+            {upcomingClasses.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingClasses.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100">
+                        <Clock className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                          {item.time}
+                        </p>
+                        <p className="mt-1 text-base font-semibold text-slate-900">
+                          {item.course}
+                        </p>
+                        <p className="mt-0.5 text-sm text-slate-600">
+                          {item.location} · {item.section}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <button className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
-                    Join Class
-                  </button>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card title="Recent Activity">
-            <div className="space-y-2">
-              {recentActivity.map((activity, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <p className="text-sm text-slate-700">{activity.action}</p>
-                  <span className="text-xs font-medium text-slate-500">
-                    {activity.timestamp}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-4">No classes scheduled today</p>
+            )}
           </Card>
         </div>
 
@@ -249,28 +233,32 @@ export default function InstructorDashboard() {
         <div className="space-y-6">
           {/* Pending Actions */}
           <Card title="Pending Actions">
-            <div className="space-y-3">
-              {pendingActions.map((action, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-slate-50 px-4 py-3"
-                >
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-orange-600">
-                        {action.type}
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-slate-900">
-                        {action.student}
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-600">{action.course}</p>
-                      <p className="mt-1 text-xs text-slate-500">{action.time}</p>
+            {pendingActions.length > 0 ? (
+              <div className="space-y-3">
+                {pendingActions.map((action, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-slate-50 px-4 py-3"
+                  >
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-orange-600">
+                          {action.type}
+                        </p>
+                        <p className="mt-1 text-sm font-semibold text-slate-900">
+                          {action.student}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-600">{action.course}</p>
+                        <p className="mt-1 text-xs text-slate-500">{action.time}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 text-center py-4">No pending actions</p>
+            )}
             <Link
               href="/instructor/pending"
               className="mt-4 block text-center text-sm font-medium text-orange-600 hover:text-orange-700"
@@ -296,48 +284,6 @@ export default function InstructorDashboard() {
                   {action.label}
                 </Link>
               ))}
-            </div>
-          </Card>
-
-          {/* Performance Overview */}
-          <Card title="Performance Overview">
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700">CS502 - Avg. Score</span>
-                  <span className="font-semibold text-indigo-600">78%</span>
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400"
-                    style={{ width: '78%' }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700">CS604 - Avg. Score</span>
-                  <span className="font-semibold text-indigo-600">82%</span>
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-green-500 to-green-400"
-                    style={{ width: '82%' }}
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700">CS701 - Avg. Score</span>
-                  <span className="font-semibold text-indigo-600">85%</span>
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400"
-                    style={{ width: '85%' }}
-                  />
-                </div>
-              </div>
             </div>
           </Card>
         </div>
