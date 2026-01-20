@@ -7,98 +7,106 @@ type StudentProfile = {
   fullName: string;
   entryNumber: string;
   profilePicture: string;
-  dateOfBirth: string;
-  gender: string;
-  bloodGroup: string;
+  dateOfBirth: string | null;
+  gender: string | null;
+  bloodGroup: string | null;
   
   // Academic Information
-  program: "B.Tech" | "M.Tech" | "M.Sc" | "Ph.D" | "B.Sc";
+  program: string;
   department: string;
   branch: string;
-  currentSemester: number;
-  enrollmentYear: number;
-  expectedGraduationMonth: string;
-  expectedGraduationYear: number;
+  batch: number | null;
   cgpa: number;
   creditsCompleted: number;
   totalCreditsRequired: number;
+  deptRank: number | null;
+  instituteRank: number | null;
   
   // Contact Information
   email: string;
-  phoneNumber: string;
-  alternatePhone?: string;
-  permanentAddress: string;
-  currentAddress?: string;
+  phoneNumber: string | null;
+  alternatePhone: string | null;
+  permanentAddress: string | null;
+  currentAddress: string | null;
   
   // Guardian Information
-  guardianName?: string;
-  guardianPhone?: string;
-  guardianRelation?: string;
+  guardianName: string | null;
+  guardianPhone: string | null;
+  guardianRelation: string | null;
   
   // Additional Information
-  nationality: string;
-  category: string;
-  admissionCategory: string;
-};
-
-// TODO: Replace with API call to fetch student profile
-const fetchStudentProfile = async (): Promise<StudentProfile> => {
-  return Promise.resolve({
-    fullName: "Arjun Kumar Sharma",
-    entryNumber: "2023CSB1089",
-    profilePicture: "/default-avatar.png",
-    dateOfBirth: "2005-03-15",
-    gender: "Male",
-    bloodGroup: "O+",
-    
-    program: "B.Tech",
-    department: "Computer Science and Engineering",
-    branch: "Computer Science",
-    currentSemester: 3,
-    enrollmentYear: 2023,
-    expectedGraduationMonth: "May",
-    expectedGraduationYear: 2027,
-    cgpa: 8.17,
-    creditsCompleted: 54.5,
-    totalCreditsRequired: 160,
-    
-    email: "2023csb1089@iitrpr.ac.in",
-    phoneNumber: "+91 98765 43210",
-    alternatePhone: "+91 87654 32109",
-    permanentAddress: "House No. 123, Sector 45, Chandigarh - 160047, Punjab, India",
-    currentAddress: "Hostel A, Room 204, IIT Ropar, Rupnagar - 140001, Punjab, India",
-    
-    guardianName: "Rajesh Kumar Sharma",
-    guardianPhone: "+91 98765 12345",
-    guardianRelation: "Father",
-    
-    nationality: "Indian",
-    category: "General",
-    admissionCategory: "JEE Advanced",
-  });
+  nationality: string | null;
+  category: string | null;
+  admissionCategory: string | null;
 };
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
-  // Load profile data
+  // Load profile data from API
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const data = await fetchStudentProfile();
-        setProfile(data);
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
+        setLoading(true);
+        const response = await fetch('/api/profile');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile');
+        }
+
+        const data = await response.json();
+        const apiProfile = data.profile;
+        
+        // Transform API data to match component format
+        const transformedProfile: StudentProfile = {
+          fullName: apiProfile.name || 'N/A',
+          entryNumber: apiProfile.entryNumber || 'N/A',
+          profilePicture: apiProfile.studentProfile?.profilePicture || '/default-avatar.png',
+          dateOfBirth: apiProfile.studentProfile?.dateOfBirth || null,
+          gender: apiProfile.studentProfile?.gender || null,
+          bloodGroup: apiProfile.studentProfile?.bloodGroup || null,
+          
+          program: apiProfile.program || 'N/A',
+          department: apiProfile.department || 'N/A',
+          branch: apiProfile.programCode || 'N/A',
+          batch: apiProfile.batch || null,
+          cgpa: apiProfile.studentRecord?.cgpa || 0,
+          creditsCompleted: apiProfile.studentRecord?.totalEarnedCredits || 0,
+          totalCreditsRequired: apiProfile.studentRecord?.totalCredits || 160,
+          deptRank: apiProfile.studentRecord?.deptRank || null,
+          instituteRank: apiProfile.studentRecord?.instituteRank || null,
+          
+          email: apiProfile.email || 'N/A',
+          phoneNumber: apiProfile.studentProfile?.phoneNumber || apiProfile.phone || null,
+          alternatePhone: apiProfile.studentProfile?.alternatePhone || null,
+          permanentAddress: apiProfile.studentProfile?.permanentAddress || apiProfile.address || null,
+          currentAddress: apiProfile.studentProfile?.currentAddress || null,
+          
+          guardianName: apiProfile.studentProfile?.fatherName || apiProfile.studentProfile?.motherName || apiProfile.studentProfile?.guardianName || null,
+          guardianPhone: apiProfile.studentProfile?.fatherPhone || apiProfile.studentProfile?.motherPhone || apiProfile.studentProfile?.guardianPhone || null,
+          guardianRelation: apiProfile.studentProfile?.guardianRelation || 'Parent',
+          
+          nationality: apiProfile.studentProfile?.nationality || null,
+          category: apiProfile.studentProfile?.category || null,
+          admissionCategory: apiProfile.studentProfile?.admissionQuota || null,
+        };
+
+        setProfile(transformedProfile);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
     };
     loadProfile();
   }, []);
+
 
   const handleDownloadIDCard = () => {
     // TODO: Implement PDF generation and download
@@ -255,11 +263,11 @@ export default function ProfilePage() {
           
           <div className="space-y-3">
             <InfoRow label="Full Name" value={profile.fullName} />
-            <InfoRow label="Date of Birth" value={new Date(profile.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} />
-            <InfoRow label="Gender" value={profile.gender} />
-            <InfoRow label="Blood Group" value={profile.bloodGroup} />
-            <InfoRow label="Nationality" value={profile.nationality} />
-            <InfoRow label="Category" value={profile.category} />
+            <InfoRow label="Date of Birth" value={profile.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'} />
+            <InfoRow label="Gender" value={profile.gender || 'N/A'} />
+            <InfoRow label="Blood Group" value={profile.bloodGroup || 'N/A'} />
+            <InfoRow label="Nationality" value={profile.nationality || 'N/A'} />
+            <InfoRow label="Category" value={profile.category || 'N/A'} />
           </div>
         </div>
 
@@ -279,8 +287,8 @@ export default function ProfilePage() {
             <InfoRow label="Program" value={profile.program} />
             <InfoRow label="Department" value={profile.department} />
             <InfoRow label="Branch/Major" value={profile.branch} />
-            <InfoRow label="Current Semester" value={`Semester ${profile.currentSemester}`} />
-            <InfoRow label="Admission Category" value={profile.admissionCategory} />
+            <InfoRow label="Batch" value={profile.batch ? profile.batch.toString() : 'N/A'} />
+            <InfoRow label="Admission Category" value={profile.admissionCategory || 'N/A'} />
           </div>
         </div>
 
@@ -327,8 +335,8 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            <InfoRow label="Enrollment Year" value={profile.enrollmentYear.toString()} />
-            <InfoRow label="Expected Graduation" value={`${profile.expectedGraduationMonth} ${profile.expectedGraduationYear}`} />
+            <InfoRow label="Dept Rank" value={profile.deptRank ? `${profile.deptRank}` : 'N/A'} />
+            <InfoRow label="Institute Rank" value={profile.instituteRank ? `${profile.instituteRank}` : 'N/A'} />
           </div>
         </div>
 
@@ -345,13 +353,13 @@ export default function ProfilePage() {
           
           <div className="space-y-3">
             <InfoRow label="Institute Email" value={profile.email} icon="email" />
-            <InfoRow label="Phone Number" value={profile.phoneNumber} icon="phone" />
+            <InfoRow label="Phone Number" value={profile.phoneNumber || 'N/A'} icon="phone" />
             {profile.alternatePhone && (
               <InfoRow label="Alternate Phone" value={profile.alternatePhone} icon="phone" />
             )}
             <div className="border-t border-slate-100 pt-3">
               <p className="mb-1 text-xs font-medium text-slate-600">Permanent Address</p>
-              <p className="text-sm text-slate-700">{profile.permanentAddress}</p>
+              <p className="text-sm text-slate-700">{profile.permanentAddress || 'Not provided'}</p>
             </div>
             {profile.currentAddress && (
               <div className="border-t border-slate-100 pt-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Calendar, Clock } from "lucide-react";
 
 type CategoryKey =
@@ -10,88 +11,28 @@ type CategoryKey =
   | "grades";
 
 type AcademicEvent = {
-  event: string;
+  id: string;
+  title: string;
+  description?: string;
   startDate: string;
   endDate: string;
+  type: string;
   category: CategoryKey;
 };
 
-const currentSession = "2025-II"
+const currentSession = "2025-II";
 
-const academicEvents: AcademicEvent[] = [
-  {
-    event: "Course pre-registration",
-    startDate: "04-12-2025",
-    endDate: "04-01-2026",
-    category: "registration",
-  },
-  {
-    event: "Course drop",
-    startDate: "05-01-2026",
-    endDate: "19-01-2026",
-    category: "registration",
-  },
-  {
-    event: "Withdraw",
-    startDate: "05-03-2026",
-    endDate: "13-03-2026",
-    category: "registration",
-  },
-  {
-    event: "Classes",
-    startDate: "05-01-2026",
-    endDate: "30-04-2026",
-    category: "academic",
-  },
-  {
-    event: "Midsem course feedback",
-    startDate: "16-02-2026",
-    endDate: "23-02-2026",
-    category: "feedback",
-  },
-  {
-    event: "Course feedback",
-    startDate: "24-04-2026",
-    endDate: "02-05-2026",
-    category: "feedback",
-  },
-  {
-    event: "Show feedback (midsem)",
-    startDate: "06-03-2026",
-    endDate: "N/A",
-    category: "feedback",
-  },
-  {
-    event: "Show feedback (endsem)",
-    startDate: "29-05-2026",
-    endDate: "N/A",
-    category: "feedback",
-  },
-  {
-    event: "Mid sem exams",
-    startDate: "25-02-2026",
-    endDate: "03-03-2026",
-    category: "exam",
-  },
-  {
-    event: "End sem exams",
-    startDate: "04-05-2026",
-    endDate: "13-05-2026",
-    category: "exam",
-  },
-  {
-    event: "Grades submission",
-    startDate: "04-05-2026",
-    endDate: "19-05-2026",
-    category: "grades",
-  },
-  {
-    event: "Result Declaration",
-    startDate: "29-05-2026",
-    endDate: "N/A",
-    category: "grades",
-  },
-];
+// Map EventType from database to CategoryKey
+const mapEventTypeToCategory = (type: string): CategoryKey => {
+  const typeMap: Record<string, CategoryKey> = {
+    'REGISTRATION': 'registration',
+    'ACADEMIC': 'academic',
+    'FEEDBACK': 'feedback',
+    'EXAM': 'exam',
+    'GRADES': 'grades',
+  };
+  return typeMap[type] || 'academic';
+};
 
 const categoryMeta: Record<
   CategoryKey,
@@ -152,10 +93,19 @@ function formatCategoryTitle(category: CategoryKey) {
   return category.charAt(0).toUpperCase() + category.slice(1);
 }
 
+// Format date from ISO to DD-MM-YYYY
+function formatDate(dateString: string): string {
+  if (!dateString || dateString === 'N/A') return 'N/A';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 function getDaysRemaining(dateStr: string): number | null {
   if (dateStr === "N/A") return null;
-  const [day, month, year] = dateStr.split("-").map(Number);
-  const targetDate = new Date(year, month - 1, day);
+  const targetDate = new Date(dateStr);
   const today = new Date();
   const diff = targetDate.getTime() - today.getTime();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
@@ -164,14 +114,52 @@ function getDaysRemaining(dateStr: string): number | null {
 function sortByDate(a: AcademicEvent, b: AcademicEvent) {
   const getValue = (dateStr: string) => {
     if (dateStr === "N/A") return Number.MAX_SAFE_INTEGER;
-    const [day, month, year] = dateStr.split("-").map(Number);
-    return new Date(year, month - 1, day).getTime();
+    return new Date(dateStr).getTime();
   };
 
   return getValue(a.startDate) - getValue(b.startDate);
 }
 
 export default function CalenderPage() {
+  const [academicEvents, setAcademicEvents] = useState<AcademicEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/events');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch events');
+        }
+
+        const data = await response.json();
+        
+        // Transform API data to match component format
+        const transformedEvents: AcademicEvent[] = data.events.map((event: any) => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          startDate: event.startDate,
+          endDate: event.endDate,
+          type: event.type,
+          category: mapEventTypeToCategory(event.type),
+        }));
+
+        setAcademicEvents(transformedEvents);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchEvents();
+  }, []);
+
   const groupedEvents = categoryOrder.reduce(
     (acc, key) => {
       acc[key] = academicEvents
@@ -181,6 +169,43 @@ export default function CalenderPage() {
     },
     {} as Record<CategoryKey, AcademicEvent[]>,
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-900"></div>
+          <p className="mt-4 text-sm text-slate-600">Loading calendar events...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+          <div className="flex items-start gap-3">
+            <svg className="h-6 w-6 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="font-semibold text-red-900">Error Loading Calendar</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-3 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -259,7 +284,7 @@ export default function CalenderPage() {
                             />
                             <div>
                               <p className="text-base font-semibold text-slate-900 md:text-lg">
-                                {item.event}
+                                {item.title}
                               </p>
                               <span className="sr-only">Status: {statusLabel}</span>
                             </div>
@@ -274,7 +299,7 @@ export default function CalenderPage() {
                                   Start Date
                                 </p>
                                 <p className="text-base font-semibold text-white">
-                                  {item.startDate}
+                                  {formatDate(item.startDate)}
                                 </p>
                               </div>
                             </div>
@@ -287,7 +312,7 @@ export default function CalenderPage() {
                                   End Date
                                 </p>
                                 <p className="text-base font-semibold text-white">
-                                  {item.endDate}
+                                  {formatDate(item.endDate)}
                                 </p>
                               </div>
                             </div>

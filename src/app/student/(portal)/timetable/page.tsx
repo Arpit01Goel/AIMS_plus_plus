@@ -2,105 +2,74 @@
 
 import { useState, useEffect } from 'react';
 
-// Data structure for course schedule - can be easily integrated with backend
-interface CourseSchedule {
+// Data structure for course meeting from API
+interface CourseMeeting {
+  id: string;
   courseCode: string;
-  title: string;
-  instructor: string;
+  courseTitle: string;
+  dayOfWeek: number; // 1=Monday, 7=Sunday
+  startTime: string;
+  endTime: string;
   location: string;
-  schedule: {
-    day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
-    startTime: string; // e.g., "9:00"
-    endTime: string; // e.g., "9:50"
-    slot: string; // e.g., "PC-1"
-  }[];
+  slot: string;
+  credits: number;
 }
 
 // Time slots configuration matching the timetable image
 const TIME_SLOTS = [
-  { start: '8:00', end: '8:50', label: '8:00 - 8:50' },
-  { start: '9:00', end: '9:50', label: '9:00 - 9:50' },
-  { start: '10:00', end: '10:50', label: '10:00 - 10:50' },
-  { start: '11:00', end: '11:50', label: '11:00 - 11:50' },
-  { start: '12:00', end: '12:50', label: '12:00 - 12:50' },
-  { start: '13:00', end: '13:50', label: '1:00 - 1:50' },
-  { start: '14:00', end: '14:50', label: '2:00 - 2:50' },
-  { start: '15:00', end: '15:50', label: '3:00 - 3:50' },
-  { start: '16:00', end: '16:50', label: '4:00 - 4:50' },
-  { start: '17:00', end: '17:50', label: '5:00 - 5:50' },
-  { start: '18:00', end: '18:50', label: '6:00 - 6:50' },
+  { start: '08:00', end: '09:00', label: '8:00 - 9:00' },
+  { start: '09:00', end: '10:00', label: '9:00 - 10:00' },
+  { start: '10:00', end: '11:00', label: '10:00 - 11:00' },
+  { start: '11:00', end: '12:00', label: '11:00 - 12:00' },
+  { start: '12:00', end: '13:00', label: '12:00 - 1:00' },
+  { start: '13:00', end: '14:00', label: '1:00 - 2:00' },
+  { start: '14:00', end: '15:00', label: '2:00 - 3:00' },
+  { start: '15:00', end: '16:00', label: '3:00 - 4:00' },
+  { start: '16:00', end: '17:00', label: '4:00 - 5:00' },
+  { start: '17:00', end: '18:00', label: '5:00 - 6:00' },
+  { start: '18:00', end: '19:00', label: '6:00 - 7:00' },
 ];
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as const;
 
-// TODO: Replace with API call to fetch enrolled courses with schedules
-const fetchStudentTimetable = async (): Promise<CourseSchedule[]> => {
-  return Promise.resolve([
-    {
-      courseCode: 'CS502',
-      title: 'Data Structures and Algorithms',
-      instructor: 'Dr. Rajesh Kumar',
-      location: 'A-101',
-      schedule: [
-        { day: 'Monday', startTime: '9:00', endTime: '9:50', slot: 'PC-1' },
-        { day: 'Wednesday', startTime: '9:00', endTime: '9:50', slot: 'PC-1' },
-        { day: 'Friday', startTime: '9:00', endTime: '9:50', slot: 'PC-1' },
-      ],
-    },
-    {
-      courseCode: 'MA301',
-      title: 'Linear Algebra',
-      instructor: 'Dr. Anita Verma',
-      location: 'B-204',
-      schedule: [
-        { day: 'Monday', startTime: '10:00', endTime: '10:50', slot: 'MA102' },
-        { day: 'Thursday', startTime: '10:00', endTime: '10:50', slot: 'MA102' },
-      ],
-    },
-    {
-      courseCode: 'CS701',
-      title: 'Distributed Systems',
-      instructor: 'Dr. Vikram Mehta',
-      location: 'C-301',
-      schedule: [
-        { day: 'Tuesday', startTime: '11:00', endTime: '11:50', slot: 'PC-3' },
-        { day: 'Thursday', startTime: '14:00', endTime: '14:50', slot: 'PC-3' },
-      ],
-    },
-    {
-      courseCode: 'EE401',
-      title: 'Digital Signal Processing',
-      instructor: 'Dr. Sunita Rani',
-      location: 'D-102',
-      schedule: [
-        { day: 'Monday', startTime: '15:00', endTime: '15:50', slot: 'PCPE' },
-        { day: 'Wednesday', startTime: '15:00', endTime: '15:50', slot: 'PCPE' },
-      ],
-    },
-    {
-      courseCode: 'CS604',
-      title: 'Advanced Operating Systems',
-      instructor: 'Nitin Auluck',
-      location: 'A-205',
-      schedule: [
-        { day: 'Tuesday', startTime: '14:00', endTime: '14:50', slot: 'HSME' },
-        { day: 'Friday', startTime: '14:00', endTime: '14:50', slot: 'HSME' },
-      ],
-    },
-  ]);
+// Map dayOfWeek number to day name
+const getDayName = (dayOfWeek: number): string => {
+  const dayMap: { [key: number]: string } = {
+    1: 'Monday',
+    2: 'Tuesday',
+    3: 'Wednesday',
+    4: 'Thursday',
+    5: 'Friday',
+    6: 'Saturday',
+    7: 'Sunday',
+  };
+  return dayMap[dayOfWeek] || 'Unknown';
 };
 
 export default function TimetablePage() {
-  const [courses, setCourses] = useState<CourseSchedule[]>([]);
+  const [schedule, setSchedule] = useState<CourseMeeting[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sessionInfo, setSessionInfo] = useState<any>(null);
+  const [totalCourses, setTotalCourses] = useState(0);
 
   useEffect(() => {
     const loadTimetable = async () => {
       try {
-        const data = await fetchStudentTimetable();
-        setCourses(data);
-      } catch (error) {
-        console.error('Failed to fetch timetable:', error);
+        setLoading(true);
+        const response = await fetch('/api/courses/student/schedule');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch schedule');
+        }
+
+        const data = await response.json();
+        setSchedule(data.schedule);
+        setSessionInfo(data.session);
+        setTotalCourses(data.totalCourses);
+      } catch (err) {
+        console.error('Failed to fetch timetable:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -108,43 +77,20 @@ export default function TimetablePage() {
     loadTimetable();
   }, []);
 
-  // Helper function to find course at specific day and time
-  const getCourseAtSlot = (day: string, startTime: string) => {
-    for (const course of courses) {
-      const slot = course.schedule.find(
-        (s) => s.day === day && s.startTime === startTime
-      );
-      if (slot) {
-        return { course, slot };
-      }
-    }
-    return null;
+  // Helper function to find course meeting at specific day and time
+  const getMeetingAtSlot = (day: string, startTime: string): CourseMeeting | null => {
+    return schedule.find(
+      (meeting) => getDayName(meeting.dayOfWeek) === day && meeting.startTime === startTime
+    ) || null;
   };
 
-  const CourseCell = ({
-    course,
-    slot,
-  }: {
-    course: CourseSchedule;
-    slot: CourseSchedule['schedule'][0];
-  }) => (
+  const CourseCell = ({ meeting }: { meeting: CourseMeeting }) => (
     <div
-      className="group relative cursor-default rounded-lg bg-indigo-700 p-2 shadow-sm transition-all hover:shadow-md text-center"
+      className="cursor-default rounded-lg bg-indigo-700 p-2 shadow-sm transition-all hover:shadow-md text-center"
     >
-      <div className="text-xs font-bold text-white">{course.courseCode}</div>
-      <div className="mt-0.5 text-xs font-medium text-white/90">{slot.slot}</div>
-      <div className="mt-0.5 text-xs text-white/80">{course.location}</div>
-      
-      {/* Tooltip on hover */}
-      <div className="absolute bottom-full left-1/2 z-50 mb-2 hidden w-64 -translate-x-1/2 rounded-lg border border-slate-200 bg-white p-3 shadow-lg group-hover:block">
-        <div className="text-sm font-bold text-slate-900">{course.courseCode}</div>
-        <div className="mt-1 text-xs text-slate-700">{course.title}</div>
-        <div className="mt-2 text-xs text-slate-600">
-          <div>Instructor: {course.instructor}</div>
-          <div className="mt-1">Location: {course.location}</div>
-          <div className="mt-1">Slot: {slot.slot}</div>
-        </div>
-      </div>
+      <div className="text-xs font-bold text-white">{meeting.courseCode}</div>
+      <div className="mt-0.5 text-xs font-medium text-white/90">{meeting.slot}</div>
+      <div className="mt-0.5 text-xs text-white/80">{meeting.location}</div>
     </div>
   );
 
@@ -159,10 +105,23 @@ export default function TimetablePage() {
     );
   }
 
-  const totalCredits = courses.reduce((sum, course) => {
-    // Assuming 3 lectures per week = 3 credits (can be adjusted)
-    return sum + course.schedule.length;
-  }, 0);
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+        <div className="flex items-start gap-3">
+          <svg className="h-6 w-6 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 className="font-semibold text-red-900">Error Loading Timetable</h3>
+            <p className="mt-1 text-sm text-red-700">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const weeklyClasses = schedule.length;
 
   return (
     <div className="space-y-6">
@@ -172,17 +131,17 @@ export default function TimetablePage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">My Timetable</h1>
             <p className="mt-2 text-indigo-100">
-              2nd Semester of the A.Y. 2025-26 (January 2026-May 2026)
+              {sessionInfo?.code || 'Academic Session'}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
               <div className="text-sm text-indigo-100">Enrolled Courses</div>
-              <div className="text-2xl font-bold text-white">{courses.length}</div>
+              <div className="text-2xl font-bold text-white">{totalCourses}</div>
             </div>
             <div className="rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm">
               <div className="text-sm text-indigo-100">Weekly Classes</div>
-              <div className="text-2xl font-bold text-white">{totalCredits}</div>
+              <div className="text-2xl font-bold text-white">{weeklyClasses}</div>
             </div>
           </div>
         </div>
@@ -207,7 +166,7 @@ export default function TimetablePage() {
             </tr>
           </thead>
           <tbody>
-            {TIME_SLOTS.map((timeSlot, index) => (
+            {TIME_SLOTS.map((timeSlot) => (
               <tr
                 key={`${timeSlot.start}-${timeSlot.end}`}
                 className="border-b border-slate-100 hover:bg-slate-50/50"
@@ -216,14 +175,11 @@ export default function TimetablePage() {
                   {timeSlot.label}
                 </td>
                 {DAYS.map((day) => {
-                  const courseAtSlot = getCourseAtSlot(day, timeSlot.start);
+                  const meeting = getMeetingAtSlot(day, timeSlot.start);
                   return (
                     <td key={day} className="p-2">
-                      {courseAtSlot ? (
-                        <CourseCell
-                          course={courseAtSlot.course}
-                          slot={courseAtSlot.slot}
-                        />
+                      {meeting ? (
+                        <CourseCell meeting={meeting} />
                       ) : (
                         <div className="h-16 rounded-lg border border-dashed border-slate-200"></div>
                       )}
@@ -237,7 +193,7 @@ export default function TimetablePage() {
       </div>
 
       {/* Empty State */}
-      {courses.length === 0 && (
+      {schedule.length === 0 && (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
           <svg
             className="mx-auto h-12 w-12 text-slate-300"
@@ -252,7 +208,7 @@ export default function TimetablePage() {
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <p className="mt-2 text-sm font-medium text-slate-900">No courses scheduled</p>
+          <p className="mt-2 text-sm font-medium text-slate-900">No classes scheduled</p>
           <p className="mt-1 text-sm text-slate-500">
             Enroll in courses to see your timetable
           </p>

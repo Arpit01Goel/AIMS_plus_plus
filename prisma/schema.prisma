@@ -77,12 +77,11 @@ enum CourseCategory {
 }
 
 enum EventType {
-  EXAM
-  HOLIDAY
-  REGISTRATION
-  DEADLINE
-  SEMINAR
-  OTHER
+  REGISTRATION  // Enrollment, drop, and withdrawal deadlines
+  ACADEMIC      // Classes and instructional periods
+  FEEDBACK      // Mid-semester and end-semester surveys
+  EXAM          // Midterm and final examination periods
+  GRADES        // Grade submissions and announcements
 }
 
 enum EventVisibility {
@@ -172,10 +171,100 @@ model Student {
   enrollments         Enrollment[]
   feeReceipts         FeeReceipt[]
   feedbackResponses   CourseFeedbackResponse[]
+  
+  // Profile
+  profile StudentProfile?
+  
+  // Cached academic record
+  record StudentRecord?
 
   @@index([entryNumber])
   @@index([userId])
   @@index([advisorId])
+}
+
+model StudentProfile {
+  id        String   @id @default(cuid())
+  studentId String   @unique
+  
+  // Personal Information
+  dateOfBirth DateTime?
+  gender      String?
+  bloodGroup  String?
+  nationality String?
+  category    String? // General, OBC, SC, ST, etc.
+  
+  // Contact Information
+  personalEmail String?
+  phoneNumber   String?
+  alternatePhone String?
+  
+  // Address
+  permanentAddress String?
+  permanentCity    String?
+  permanentState   String?
+  permanentPincode String?
+  currentAddress   String?
+  currentCity      String?
+  currentState     String?
+  currentPincode   String?
+  
+  // Guardian Information
+  fatherName        String?
+  fatherOccupation  String?
+  fatherPhone       String?
+  motherName        String?
+  motherOccupation  String?
+  motherPhone       String?
+  guardianName      String?
+  guardianRelation  String?
+  guardianPhone     String?
+  
+  // Academic Information
+  tenthBoard       String?
+  tenthPercentage  Float?
+  tenthYearOfPassing Int?
+  twelfthBoard     String?
+  twelfthPercentage Float?
+  twelfthYearOfPassing Int?
+  jeeRank          Int?
+  admissionQuota   String?
+  
+  // Additional Info
+  hobbies          String?
+  achievements     String?
+  profilePicture   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@index([studentId])
+}
+
+model StudentRecord {
+  id        String   @id @default(cuid())
+  studentId String   @unique
+  
+  // Cached computed values
+  cgpa              Float   @default(0)
+  totalCredits      Float   @default(0)
+  totalEarnedCredits Float  @default(0)
+  
+  // JSON field for semester records
+  semestersData Json?  // Array of semester objects with courses, SGPA, etc.
+  
+  lastCalculated DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  @@index([studentId])
+  @@index([lastCalculated])
 }
 
 model Instructor {
@@ -461,7 +550,7 @@ model AcademicEvent {
   description String?
   startDate   DateTime
   endDate     DateTime
-  type        EventType       @default(OTHER)
+  type        EventType       @default(ACADEMIC)
   visibility  EventVisibility @default(ALL)
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt

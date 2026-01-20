@@ -17,6 +17,8 @@ export async function GET() {
           include: {
             program: true,
             department: true,
+            profile: true,
+            record: true, // Include StudentRecord
           },
         },
         instructor: {
@@ -53,15 +55,111 @@ export async function GET() {
     };
 
     if (user.role === 'STUDENT' && user.student) {
+      const student = user.student;
+
+      // Calculate department rank (among same batch in same department)
+      let deptRank = null;
+      if (student.departmentId && student.batch && student.record) {
+        const deptStudents = await prisma.student.findMany({
+          where: {
+            departmentId: student.departmentId,
+            batch: student.batch,
+            record: { isNot: null },
+          },
+          include: { record: true },
+          orderBy: { record: { cgpa: 'desc' } },
+        });
+        deptRank = deptStudents.findIndex(s => s.id === student.id) + 1;
+      }
+
+      // Calculate institute rank (among same batch)
+      let instituteRank = null;
+      if (student.batch && student.record) {
+        const allStudents = await prisma.student.findMany({
+          where: {
+            batch: student.batch,
+            record: { isNot: null },
+          },
+          include: { record: true },
+          orderBy: { record: { cgpa: 'desc' } },
+        });
+        instituteRank = allStudents.findIndex(s => s.id === student.id) + 1;
+      }
+
       profile = {
         ...profile,
+        // Basic student info
         entryNumber: user.student.entryNumber,
         batch: user.student.batch,
         program: user.student.program?.name || 'N/A',
         programCode: user.student.program?.code || 'N/A',
         department: user.student.department?.name || 'N/A',
+        departmentCode: user.student.department?.code || 'N/A',
         phone: user.student.phone || 'N/A',
         address: user.student.address || 'N/A',
+
+        // Academic performance from StudentRecord
+        studentRecord: user.student.record ? {
+          cgpa: user.student.record.cgpa,
+          totalCredits: user.student.record.totalCredits,
+          totalEarnedCredits: user.student.record.totalEarnedCredits,
+          lastCalculated: user.student.record.lastCalculated,
+          deptRank,
+          instituteRank,
+        } : null,
+
+        // Complete StudentProfile data (if exists)
+        studentProfile: user.student.profile ? {
+          // Personal Information
+          dateOfBirth: user.student.profile.dateOfBirth,
+          gender: user.student.profile.gender,
+          bloodGroup: user.student.profile.bloodGroup,
+          nationality: user.student.profile.nationality,
+          category: user.student.profile.category,
+
+          // Contact Information
+          personalEmail: user.student.profile.personalEmail,
+          phoneNumber: user.student.profile.phoneNumber,
+          alternatePhone: user.student.profile.alternatePhone,
+
+          // Permanent Address
+          permanentAddress: user.student.profile.permanentAddress,
+          permanentCity: user.student.profile.permanentCity,
+          permanentState: user.student.profile.permanentState,
+          permanentPincode: user.student.profile.permanentPincode,
+
+          // Current Address
+          currentAddress: user.student.profile.currentAddress,
+          currentCity: user.student.profile.currentCity,
+          currentState: user.student.profile.currentState,
+          currentPincode: user.student.profile.currentPincode,
+
+          // Guardian Information
+          fatherName: user.student.profile.fatherName,
+          fatherOccupation: user.student.profile.fatherOccupation,
+          fatherPhone: user.student.profile.fatherPhone,
+          motherName: user.student.profile.motherName,
+          motherOccupation: user.student.profile.motherOccupation,
+          motherPhone: user.student.profile.motherPhone,
+          guardianName: user.student.profile.guardianName,
+          guardianRelation: user.student.profile.guardianRelation,
+          guardianPhone: user.student.profile.guardianPhone,
+
+          // Academic Information
+          tenthBoard: user.student.profile.tenthBoard,
+          tenthPercentage: user.student.profile.tenthPercentage,
+          tenthYearOfPassing: user.student.profile.tenthYearOfPassing,
+          twelfthBoard: user.student.profile.twelfthBoard,
+          twelfthPercentage: user.student.profile.twelfthPercentage,
+          twelfthYearOfPassing: user.student.profile.twelfthYearOfPassing,
+          jeeRank: user.student.profile.jeeRank,
+          admissionQuota: user.student.profile.admissionQuota,
+
+          // Additional Info
+          hobbies: user.student.profile.hobbies,
+          achievements: user.student.profile.achievements,
+          profilePicture: user.student.profile.profilePicture,
+        } : null,
       };
     } else if (user.role === 'INSTRUCTOR' && user.instructor) {
       const coursesTaught = user.instructor.courseOfferings.map((offering) => ({

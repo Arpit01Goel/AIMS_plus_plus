@@ -29,6 +29,8 @@ async function main() {
   await prisma.courseOffering.deleteMany();
   await prisma.course.deleteMany();
   await prisma.academicSession.deleteMany();
+  await prisma.studentRecord.deleteMany();
+  await prisma.studentProfile.deleteMany();
   await prisma.student.deleteMany();
   await prisma.instructor.deleteMany();
   await prisma.advisor.deleteMany();
@@ -192,6 +194,96 @@ async function main() {
     },
   });
 
+  // Get student profiles for creating profiles and enrollments later
+  const student1 = await prisma.student.findUnique({
+    where: { userId: student1User.id },
+  });
+  const student2 = await prisma.student.findUnique({
+    where: { userId: student2User.id },
+  });
+
+  // Create Student Profiles
+  console.log('📝 Creating student profiles...');
+  if (student1) {
+    await prisma.studentProfile.create({
+      data: {
+        studentId: student1.id,
+        dateOfBirth: new Date('2004-05-15'),
+        gender: 'Male',
+        bloodGroup: 'O+',
+        nationality: 'Indian',
+        category: 'General',
+        personalEmail: 'amit.verma@gmail.com',
+        phoneNumber: '+91-9876543210',
+        alternatePhone: '+91-9876543200',
+        permanentAddress: '123, MG Road, Sector 5',
+        permanentCity: 'Delhi',
+        permanentState: 'Delhi',
+        permanentPincode: '110001',
+        currentAddress: 'Hostel A, Room 101, IIT Ropar',
+        currentCity: 'Rupnagar',
+        currentState: 'Punjab',
+        currentPincode: '140001',
+        fatherName: 'Rajesh Verma',
+        fatherOccupation: 'Business',
+        fatherPhone: '+91-9876543201',
+        motherName: 'Sunita Verma',
+        motherOccupation: 'Teacher',
+        motherPhone: '+91-9876543202',
+        tenthBoard: 'CBSE',
+        tenthPercentage: 95.5,
+        tenthYearOfPassing: 2019,
+        twelfthBoard: 'CBSE',
+        twelfthPercentage: 93.8,
+        twelfthYearOfPassing: 2021,
+        jeeRank: 1250,
+        admissionQuota: 'Open',
+        hobbies: 'Cricket, Photography, Coding',
+        achievements: 'State level cricket player, Won coding competition',
+      },
+    });
+  }
+
+  if (student2) {
+    await prisma.studentProfile.create({
+      data: {
+        studentId: student2.id,
+        dateOfBirth: new Date('2004-08-22'),
+        gender: 'Female',
+        bloodGroup: 'B+',
+        nationality: 'Indian',
+        category: 'OBC',
+        personalEmail: 'sneha.patel@gmail.com',
+        phoneNumber: '+91-9876543211',
+        alternatePhone: '+91-9876543220',
+        permanentAddress: '456, Park Street, Anand',
+        permanentCity: 'Anand',
+        permanentState: 'Gujarat',
+        permanentPincode: '388001',
+        currentAddress: 'Hostel B, Room 205, IIT Ropar',
+        currentCity: 'Rupnagar',
+        currentState: 'Punjab',
+        currentPincode: '140001',
+        fatherName: 'Mahesh Patel',
+        fatherOccupation: 'Engineer',
+        fatherPhone: '+91-9876543221',
+        motherName: 'Meera Patel',
+        motherOccupation: 'Doctor',
+        motherPhone: '+91-9876543222',
+        tenthBoard: 'GSEB',
+        tenthPercentage: 96.2,
+        tenthYearOfPassing: 2019,
+        twelfthBoard: 'GSEB',
+        twelfthPercentage: 94.5,
+        twelfthYearOfPassing: 2021,
+        jeeRank: 980,
+        admissionQuota: 'Open',
+        hobbies: 'Reading, Painting, Dance',
+        achievements: 'National level debate winner, Science olympiad gold medalist',
+      },
+    });
+  }
+
   // Create Academic Session
   console.log('📅 Creating academic session...');
   const session2025_2 = await prisma.academicSession.create({
@@ -332,13 +424,13 @@ async function main() {
     },
   });
 
-  // Get student profiles
-  const student1 = await prisma.student.findUnique({
-    where: { userId: student1User.id },
-  });
-  const student2 = await prisma.student.findUnique({
-    where: { userId: student2User.id },
-  });
+  // Get student profiles (already fetched above when creating profiles)
+  // const student1 = await prisma.student.findUnique({
+  //   where: { userId: student1User.id },
+  // });
+  // const student2 = await prisma.student.findUnique({
+  //   where: { userId: student2User.id },
+  // });
 
   // Create Enrollments
   console.log('✅ Creating enrollments...');
@@ -442,7 +534,7 @@ async function main() {
       description: 'National Holiday',
       startDate: new Date('2025-01-26'),
       endDate: new Date('2025-01-26'),
-      type: 'HOLIDAY',
+      type: 'ACADEMIC', // Changed from HOLIDAY (no longer in EventType enum)
       visibility: 'ALL',
     },
   });
@@ -470,6 +562,7 @@ async function main() {
   console.log('\n✅ Seed completed successfully!\n');
   console.log('📋 Summary:');
   console.log('   - 4 Users created (1 admin, 1 instructor, 1 advisor, 2 students)');
+  console.log('   - 2 Student profiles with detailed information');
   console.log('   - 3 Departments (CSE, EE, ME)');
   console.log('   - 3 Programs (BTECH-CSE, BTECH-EE, MTECH-DS)');
   console.log('   - 1 Academic Session (2025-II)');

@@ -1,113 +1,58 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Course {
   id: string;
   courseCode: string;
   title: string;
-  ltpsc: string; // Lecture-Tutorial-Practical-Self Study-Credits
+  ltpsc: string; 
   credits: number;
-  status: 'enrolling' | 'ongoing' | 'completed';
+  status: 'enrolling' | 'running' | 'completed';
   session: string;
   enrolments: number;
   department: string;
   slot: string;
   instructors: string[];
   isEnrolled: boolean;
+  enrollmentStatus?: string;
+  enrollmentType?: string;
+  grade?: string;
 }
 
 export default function CoursesPage() {
-  // Dummy data - will be replaced with database fetch later
-  const [courses, setCourses] = useState<Course[]>([
-    {
-      id: '1',
-      courseCode: 'CS604',
-      title: 'ADVANCED OPERATING SYSTEMS',
-      ltpsc: '3-0-0-6-3',
-      credits: 3,
-      status: 'enrolling',
-      session: '2025-II',
-      enrolments: 12,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'Buffer slot',
-      instructors: ['Nitin Auluck'],
-      isEnrolled: false,
-    },
-    {
-      id: '2',
-      courseCode: 'CS502',
-      title: 'DATA STRUCTURES AND ALGORITHMS',
-      ltpsc: '3-1-0-6-4',
-      credits: 4,
-      status: 'enrolling',
-      session: '2025-II',
-      enrolments: 45,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'A1',
-      instructors: ['Dr. Rajesh Kumar', 'Dr. Priya Sharma'],
-      isEnrolled: true,
-    },
-    {
-      id: '3',
-      courseCode: 'MA301',
-      title: 'LINEAR ALGEBRA',
-      ltpsc: '3-1-0-6-4',
-      credits: 4,
-      status: 'enrolling',
-      session: '2025-II',
-      enrolments: 38,
-      department: 'Dept. of Mathematics',
-      slot: 'B2',
-      instructors: ['Dr. Anita Verma'],
-      isEnrolled: true,
-    },
-    {
-      id: '4',
-      courseCode: 'CS605',
-      title: 'MACHINE LEARNING',
-      ltpsc: '3-0-0-6-3',
-      credits: 3,
-      status: 'enrolling',
-      session: '2025-II',
-      enrolments: 67,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'C1',
-      instructors: ['Dr. Amit Singh'],
-      isEnrolled: false,
-    },
-    {
-      id: '5',
-      courseCode: 'EE401',
-      title: 'DIGITAL SIGNAL PROCESSING',
-      ltpsc: '3-0-2-4-4',
-      credits: 4,
-      status: 'enrolling',
-      session: '2025-II',
-      enrolments: 29,
-      department: 'Dept. of Electrical Engineering',
-      slot: 'D1',
-      instructors: ['Dr. Sunita Rani'],
-      isEnrolled: false,
-    },
-    {
-      id: '6',
-      courseCode: 'CS701',
-      title: 'DISTRIBUTED SYSTEMS',
-      ltpsc: '3-0-0-6-3',
-      credits: 3,
-      status: 'ongoing',
-      session: '2025-I',
-      enrolments: 34,
-      department: 'Dept. of Computer Science and Engineering',
-      slot: 'A2',
-      instructors: ['Dr. Vikram Mehta'],
-      isEnrolled: true,
-    },
-  ]);
-
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'enrolled'>('all');
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [actionsModalOpen, setActionsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  // Fetch courses from API
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/courses/student');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+
+        const data = await response.json();
+        setCourses(data.courses);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        console.error('Error fetching courses:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCourses();
+  }, []);
 
   // Filter courses based on search query and tab
   const filteredCourses = courses.filter((course) => {
@@ -128,30 +73,101 @@ export default function CoursesPage() {
   const enrolledCourses = filteredCourses.filter((course) => course.isEnrolled);
   const availableCourses = filteredCourses.filter((course) => !course.isEnrolled);
 
-  // Handle enrollment toggle (will integrate with database later)
-  const handleEnrollmentToggle = (courseId: string) => {
-    setCourses(
-      courses.map((course) =>
-        course.id === courseId
-          ? {
-              ...course,
-              isEnrolled: !course.isEnrolled,
-              enrolments: course.isEnrolled ? course.enrolments - 1 : course.enrolments + 1,
-            }
-          : course
-      )
-    );
+  // Handle enrollment with type
+  const handleEnroll = async (courseId: string, enrollmentType: 'CREDIT' | 'AUDIT' | 'CREDIT_MINOR' | 'CREDIT_CONCENTRATION') => {
+    try {
+      const response = await fetch('/api/courses/student/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offeringId: courseId,
+          enrollmentType: enrollmentType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Failed to enroll in course');
+        return;
+      }
+
+      setEnrollModalOpen(false);
+      setSelectedCourse(null);
+
+      // Show success message
+      alert(`Successfully requested enrollment as ${enrollmentType}. Status: ${data.enrollment.status}`);
+
+      // Refresh courses list
+      const coursesResponse = await fetch('/api/courses/student');
+      if (coursesResponse.ok) {
+        const coursesData = await coursesResponse.json();
+        setCourses(coursesData.courses);
+      }
+    } catch (err) {
+      console.error('Error enrolling:', err);
+      alert('An error occurred while enrolling. Please try again.');
+    }
+  };
+
+  // Handle enrollment actions
+  const handleAction = async (courseId: string, action: 'DROP' | 'WITHDRAW' | 'AUDIT') => {
+    // Confirm action
+    const confirmMessage = 
+      action === 'DROP' 
+        ? 'Are you sure you want to drop this course?' 
+        : action === 'WITHDRAW'
+        ? 'Are you sure you want to withdraw from this course? This will appear on your transcript.'
+        : 'Are you sure you want to convert this enrollment to audit?';
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/courses/student/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offeringId: courseId,
+          action: action,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Failed to perform action');
+        return;
+      }
+
+      setActionsModalOpen(false);
+      setSelectedCourse(null);
+
+      // Show success message
+      alert(data.message);
+
+      // Refresh courses list
+      const coursesResponse = await fetch('/api/courses/student');
+      if (coursesResponse.ok) {
+        const coursesData = await coursesResponse.json();
+        setCourses(coursesData.courses);
+      }
+    } catch (err) {
+      console.error('Error performing action:', err);
+      alert('An error occurred. Please try again.');
+    }
   };
 
   const getStatusBadge = (status: Course['status']) => {
     const styles = {
       enrolling: 'bg-green-100 text-green-800 border-green-200',
-      ongoing: 'bg-blue-100 text-blue-800 border-blue-200',
+      running: 'bg-blue-100 text-blue-800 border-blue-200',
       completed: 'bg-slate-100 text-slate-800 border-slate-200',
     };
     const labels = {
       enrolling: 'Enrolling',
-      ongoing: 'Ongoing',
+      running: 'Running',
       completed: 'Completed',
     };
     return (
@@ -162,7 +178,7 @@ export default function CoursesPage() {
   };
 
   const CourseCard = ({ course }: { course: Course }) => (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
+    <div className="group relative flex h-full flex-col rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
       <div className="mb-2">
         <h3 className="text-sm font-bold text-slate-900">
           <span className="text-indigo-900">{course.courseCode}</span> - {course.title}
@@ -224,25 +240,95 @@ export default function CoursesPage() {
           <span className="font-medium">{course.enrolments}</span>
         </div>
 
-        <button
-          onClick={() => course.status === 'enrolling' && handleEnrollmentToggle(course.id)}
-          disabled={course.status !== 'enrolling'}
-          className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
-            course.status !== 'enrolling'
-              ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
-              : course.isEnrolled
-              ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-              : 'bg-gradient-to-r from-indigo-900 to-indigo-700 text-white hover:from-indigo-800 hover:to-indigo-600'
-          }`}
-        >
-          {course.isEnrolled ? 'Unenroll' : 'Enroll Now'}
-        </button>
+        {course.isEnrolled ? (
+          /* Actions Button - Always enabled for enrolled courses */
+          <button
+            onClick={() => {
+              setSelectedCourse(course);
+              setActionsModalOpen(true);
+            }}
+            className="flex-shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Actions
+          </button>
+        ) : (
+          /* Enroll Button - Disabled if course is not enrolling */
+          <button
+            onClick={() => {
+              setSelectedCourse(course);
+              setEnrollModalOpen(true);
+            }}
+            disabled={course.status !== 'enrolling'}
+            className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
+              course.status !== 'enrolling'
+                ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
+                : 'bg-gradient-to-r from-indigo-900 to-indigo-700 text-white hover:from-indigo-800 hover:to-indigo-600'
+            }`}
+          >
+            Enroll
+          </button>
+        )}
       </div>
+
+      {/* Enrollment Status Section - Only for enrolled courses */}
+      {course.isEnrolled && (
+        <div className="border-t border-slate-100 pt-2 mt-2 space-y-1.5">
+          {/* Enrollment Type Row */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-slate-600">Enrollment Type:</span>
+            <span className="rounded-md bg-indigo-50 px-2 py-0.5 font-semibold text-indigo-700">
+              {course.enrollmentType?.replace('CREDIT_', '').replace('_', ' ') || 'CREDIT'}
+            </span>
+          </div>
+
+          {/* Enrollment Status Row */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-medium text-slate-600">Status:</span>
+            <span className="rounded-md px-2 py-0.5 font-semibold text-slate-900">
+              {course.enrollmentStatus?.replace(/_/g, ' ') || 'ENROLLED'}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 
   return (
     <div className="space-y-6">
+      {/* Loading State */}
+      {loading && (
+        <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-slate-200 bg-white p-12">
+          <div className="text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
+            <p className="mt-4 text-sm font-medium text-slate-700">Loading courses...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
+          <div className="flex items-start gap-3">
+            <svg className="h-6 w-6 flex-shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="font-semibold text-red-900">Error Loading Courses</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-3 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content - Only show when not loading and no error */}
+      {!loading && !error && (
+        <>
       {/* Header Section */}
       <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-700 p-8 shadow-lg">
         <div className="flex items-center justify-between">
@@ -397,6 +483,134 @@ export default function CoursesPage() {
           <p className="mt-2 text-sm font-medium text-slate-900">No courses found</p>
           <p className="mt-1 text-sm text-slate-500">Try adjusting your search query</p>
         </div>
+      )}
+
+      {/* Enrollment Type Modal */}
+      {enrollModalOpen && selectedCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="border-b border-slate-200 px-6 py-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Select Enrollment Type</h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {selectedCourse.courseCode} - {selectedCourse.title}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEnrollModalOpen(false);
+                    setSelectedCourse(null);
+                  }}
+                  className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="space-y-2">
+                <button
+                  onClick={() => selectedCourse && handleEnroll(selectedCourse.id, 'CREDIT')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Credit</div>
+                  <div className="mt-1 text-sm text-slate-600">Enroll for academic credit</div>
+                </button>
+
+                <button
+                  onClick={() => selectedCourse && handleEnroll(selectedCourse.id, 'AUDIT')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Audit</div>
+                  <div className="mt-1 text-sm text-slate-600">Attend without receiving credit</div>
+                </button>
+
+                <button
+                  onClick={() => selectedCourse && handleEnroll(selectedCourse.id, 'CREDIT_MINOR')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Credit for Minor</div>
+                  <div className="mt-1 text-sm text-slate-600">Count towards minor program requirements</div>
+                </button>
+
+                <button
+                  onClick={() => selectedCourse && handleEnroll(selectedCourse.id, 'CREDIT_CONCENTRATION')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Credit for Concentration</div>
+                  <div className="mt-1 text-sm text-slate-600">Count towards concentration requirements</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Actions Modal */}
+      {actionsModalOpen && selectedCourse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="border-b border-slate-200 px-6 py-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Course Actions</h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {selectedCourse.courseCode} - {selectedCourse.title}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setActionsModalOpen(false);
+                    setSelectedCourse(null);
+                  }}
+                  className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="space-y-2">
+                <button
+                  onClick={() => selectedCourse && handleAction(selectedCourse.id, 'DROP')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Drop Course</div>
+                  <div className="mt-1 text-sm text-slate-600">Remove enrollment from this course</div>
+                </button>
+
+                <button
+                  onClick={() => selectedCourse && handleAction(selectedCourse.id, 'WITHDRAW')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Withdraw</div>
+                  <div className="mt-1 text-sm text-slate-600">Withdraw from course (appears on transcript)</div>
+                </button>
+
+                <button
+                  onClick={() => selectedCourse && handleAction(selectedCourse.id, 'AUDIT')}
+                  className="w-full rounded-lg border border-slate-200 bg-white p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50"
+                >
+                  <div className="font-semibold text-slate-900">Convert to Audit</div>
+                  <div className="mt-1 text-sm text-slate-600">Change enrollment type to audit</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+        </>
       )}
     </div>
   );
