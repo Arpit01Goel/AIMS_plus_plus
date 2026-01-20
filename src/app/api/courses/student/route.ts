@@ -18,6 +18,9 @@ export async function GET() {
             );
         }
 
+        console.log('[COURSES API] Session user:', session.user);
+        console.log('[COURSES API] Looking for student with userId:', session.user.id);
+
         // Get student profile
         const student = await prisma.student.findUnique({
             where: { userId: session.user.id },
@@ -27,7 +30,10 @@ export async function GET() {
             },
         });
 
+        console.log('[COURSES API] Student found:', student ? `Yes (ID: ${student.id})` : 'No');
+
         if (!student) {
+            console.log('[COURSES API] Returning 404: Student profile not found');
             return NextResponse.json(
                 { error: 'Student profile not found' },
                 { status: 404 }
@@ -39,7 +45,10 @@ export async function GET() {
             where: { isCurrent: true },
         });
 
+        console.log('[COURSES API] Current session found:', currentSession ? `Yes (${currentSession.code})` : 'No');
+
         if (!currentSession) {
+            console.log('[COURSES API] Returning 404: No active academic session');
             return NextResponse.json(
                 { error: 'No active academic session found' },
                 { status: 404 }

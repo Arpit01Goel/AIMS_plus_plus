@@ -225,11 +225,27 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { name, phone, address, title } = body;
+    const {
+      name,
+      phone,
+      address,
+      title,
+      phoneNumber,
+      alternatePhone,
+      permanentAddress,
+      currentAddress,
+    } = body;
 
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: { student: true, instructor: true },
+      include: {
+        student: {
+          include: {
+            profile: true
+          }
+        },
+        instructor: true
+      },
     });
 
     if (!user) {
@@ -246,6 +262,7 @@ export async function PATCH(request: Request) {
 
     // Update role-specific fields
     if (user.role === 'STUDENT' && user.student) {
+      // Update basic student fields
       await prisma.student.update({
         where: { id: user.student.id },
         data: {
@@ -253,6 +270,32 @@ export async function PATCH(request: Request) {
           ...(address && { address }),
         },
       });
+
+      // Update or create StudentProfile with contact information
+      if (phoneNumber || alternatePhone || permanentAddress || currentAddress) {
+        const profileData = {
+          ...(phoneNumber !== undefined && { phoneNumber }),
+          ...(alternatePhone !== undefined && { alternatePhone }),
+          ...(permanentAddress !== undefined && { permanentAddress }),
+          ...(currentAddress !== undefined && { currentAddress }),
+        };
+
+        if (user.student.profile) {
+          // Update existing profile
+          await prisma.studentProfile.update({
+            where: { studentId: user.student.id },
+            data: profileData,
+          });
+        } else {
+          // Create new profile
+          await prisma.studentProfile.create({
+            data: {
+              studentId: user.student.id,
+              ...profileData,
+            },
+          });
+        }
+      }
     } else if (user.role === 'INSTRUCTOR' && user.instructor) {
       await prisma.instructor.update({
         where: { id: user.instructor.id },

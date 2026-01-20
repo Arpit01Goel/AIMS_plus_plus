@@ -44,9 +44,27 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [showContactModal, setShowContactModal] = useState(false);
+  
+  // Password form state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  
+  // Contact form state
+  const [contactForm, setContactForm] = useState({
+    phoneNumber: '',
+    alternatePhone: '',
+    permanentAddress: '',
+    currentAddress: ''
+  });
+  const [contactError, setContactError] = useState<string | null>(null);
+  const [contactLoading, setContactLoading] = useState(false);
 
   // Load profile data from API
   useEffect(() => {
@@ -107,20 +125,106 @@ export default function ProfilePage() {
     loadProfile();
   }, []);
 
+  // Initialize contact form when modal opens
+  useEffect(() => {
+    if (showContactModal && profile) {
+      setContactForm({
+        phoneNumber: profile.phoneNumber || '',
+        alternatePhone: profile.alternatePhone || '',
+        permanentAddress: profile.permanentAddress || '',
+        currentAddress: profile.currentAddress || ''
+      });
+      setContactError(null);
+    }
+  }, [showContactModal, profile]);
 
-  const handleDownloadIDCard = () => {
-    // TODO: Implement PDF generation and download
-    alert("ID Card download will be implemented soon");
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+
+    // Validation
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError('All fields are required');
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      const response = await fetch('/api/student/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to change password');
+      }
+
+      // Success
+      alert('Password changed successfully!');
+      setShowPasswordModal(false);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
-  const handleChangePassword = () => {
-    setShowPasswordModal(true);
-  };
+  const handleEditContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactError(null);
 
-  const handleThemeChange = (newTheme: "light" | "dark") => {
-    setTheme(newTheme);
-    // TODO: Implement theme change logic
-    alert(`Theme changed to ${newTheme}`);
+    try {
+      setContactLoading(true);
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: contactForm.phoneNumber,
+          alternatePhone: contactForm.alternatePhone,
+          permanentAddress: contactForm.permanentAddress,
+          currentAddress: contactForm.currentAddress
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update contact information');
+      }
+
+      // Success - Update local profile
+      setProfile(prev => prev ? {
+        ...prev,
+        phoneNumber: contactForm.phoneNumber || null,
+        alternatePhone: contactForm.alternatePhone || null,
+        permanentAddress: contactForm.permanentAddress || null,
+        currentAddress: contactForm.currentAddress || null
+      } : null);
+
+      alert('Contact information updated successfully!');
+      setShowContactModal(false);
+    } catch (err) {
+      setContactError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setContactLoading(false);
+    }
   };
 
   if (loading) {
@@ -195,19 +299,9 @@ export default function ProfilePage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2">
         <button
-          onClick={handleDownloadIDCard}
-          className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-800 hover:to-indigo-600"
-        >
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-          </svg>
-          Download ID Card
-        </button>
-        
-        <button
-          onClick={handleChangePassword}
+          onClick={() => setShowPasswordModal(true)}
           className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,34 +311,13 @@ export default function ProfilePage() {
         </button>
 
         <button
-          onClick={() => setIsEditMode(!isEditMode)}
+          onClick={() => setShowContactModal(true)}
           className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
-          {isEditMode ? "Cancel Edit" : "Edit Profile"}
-        </button>
-
-        <button
-          onClick={() => handleThemeChange(theme === "light" ? "dark" : "light")}
-          className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-        >
-          {theme === "light" ? (
-            <>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              Light Theme
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-              Dark Theme
-            </>
-          )}
+          Edit Contact Information
         </button>
       </div>
 
@@ -335,7 +408,7 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            <InfoRow label="Dept Rank" value={profile.deptRank ? `${profile.deptRank}` : 'N/A'} />
+            <InfoRow label="Department Rank" value={profile.deptRank ? `${profile.deptRank}` : 'N/A'} />
             <InfoRow label="Institute Rank" value={profile.instituteRank ? `${profile.instituteRank}` : 'N/A'} />
           </div>
         </div>
@@ -398,7 +471,11 @@ export default function ProfilePage() {
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-slate-900">Change Password</h3>
               <button
-                onClick={() => setShowPasswordModal(false)}
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordError(null);
+                  setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                }}
                 className="rounded p-1 hover:bg-slate-100"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,13 +484,22 @@ export default function ProfilePage() {
               </button>
             </div>
             
-            <form className="space-y-3">
+            {passwordError && (
+              <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-200">
+                {passwordError}
+              </div>
+            )}
+
+            <form onSubmit={handleChangePassword} className="space-y-3">
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">Current Password</label>
                 <input
                   type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                   placeholder="Enter current password"
+                  disabled={passwordLoading}
                 />
               </div>
               
@@ -421,8 +507,11 @@ export default function ProfilePage() {
                 <label className="mb-1 block text-sm font-medium text-slate-700">New Password</label>
                 <input
                   type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                   placeholder="Enter new password"
+                  disabled={passwordLoading}
                 />
               </div>
               
@@ -430,24 +519,132 @@ export default function ProfilePage() {
                 <label className="mb-1 block text-sm font-medium text-slate-700">Confirm New Password</label>
                 <input
                   type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                   placeholder="Confirm new password"
+                  disabled={passwordLoading}
                 />
               </div>
               
               <div className="flex gap-2 pt-3">
                 <button
                   type="button"
-                  onClick={() => setShowPasswordModal(false)}
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setPasswordError(null);
+                    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                  }}
                   className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  disabled={passwordLoading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600 disabled:opacity-50"
+                  disabled={passwordLoading}
                 >
-                  Change Password
+                  {passwordLoading ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Contact Information Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-xl font-bold text-slate-900">Edit Contact Information</h3>
+              <button
+                onClick={() => {
+                  setShowContactModal(false);
+                  setContactError(null);
+                }}
+                className="rounded p-1 hover:bg-slate-100"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {contactError && (
+              <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-200">
+                {contactError}
+              </div>
+            )}
+
+            <form onSubmit={handleEditContact} className="space-y-3">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Phone Number</label>
+                <input
+                  type="tel"
+                  value={contactForm.phoneNumber}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  placeholder="Enter phone number"
+                  disabled={contactLoading}
+                />
+              </div>
+              
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Alternate Phone</label>
+                <input
+                  type="tel"
+                  value={contactForm.alternatePhone}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, alternatePhone: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  placeholder="Enter alternate phone"
+                  disabled={contactLoading}
+                />
+              </div>
+              
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Permanent Address</label>
+                <textarea
+                  value={contactForm.permanentAddress}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, permanentAddress: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  placeholder="Enter permanent address"
+                  rows={3}
+                  disabled={contactLoading}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">Current Address</label>
+                <textarea
+                  value={contactForm.currentAddress}
+                  onChange={(e) => setContactForm(prev => ({ ...prev, currentAddress: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  placeholder="Enter current address"
+                  rows={3}
+                  disabled={contactLoading}
+                />
+              </div>
+              
+              <div className="flex gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowContactModal(false);
+                    setContactError(null);
+                  }}
+                  className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  disabled={contactLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600 disabled:opacity-50"
+                  disabled={contactLoading}
+                >
+                  {contactLoading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </form>

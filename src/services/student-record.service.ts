@@ -161,9 +161,9 @@ function calculateGradePoints(grade: string): number {
         'A-': 9,
         'B': 8,
         'B-': 7,
-        'C': 7,
-        'C-': 6,
-        'D': 5,
+        'C': 6,
+        'C-': 5,
+        'D': 4,
         'F': 0,
         'I': 0, // Incomplete
         'W': 0, // Withdrawn
