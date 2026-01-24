@@ -9,22 +9,16 @@ import type { Session } from "next-auth";
 import {
   Calendar,
   BookOpen,
-  DollarSign,
-  MessageSquare,
   User,
   FileText,
   Clock,
   Menu,
-  LayoutDashboard,
   LogOut,
 } from "lucide-react";
 
 const navTabs: NavTab[] = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/student/dashboard" },
   { name: "Calender", icon: Calendar, href: "/student/calender" },
   { name: "Courses", icon: BookOpen, href: "/student/courses" },
-  { name: "Fees", icon: DollarSign, href: "/student/fees" },
-  { name: "Feedback", icon: MessageSquare, href: "/student/feedback" },
   { name: "Profile", icon: User, href: "/student/profile" },
   { name: "Records", icon: FileText, href: "/student/records" },
   { name: "Timetable", icon: Clock, href: "/student/timetable" },
@@ -90,7 +84,12 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Menu className="h-5 w-5 shrink-0" />
-          {!collapsed && <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>}
+          {!collapsed && (
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>
+              <p className="text-xs text-indigo-200">Student Portal</p>
+            </div>
+          )}
         </button>
       </div>
 

@@ -144,6 +144,25 @@ model OTPCode {
   @@index([code])
 }
 
+model SignupRequest {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  entryNumber     String?   // Optional for initial request
+  phone           String?
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  emailVerified   Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  processedAt     DateTime?
+  processedBy     String?   // Admin userId who processed this request
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+}
+
 // ============================================================================
 // ROLE-SPECIFIC PROFILES
 // ============================================================================

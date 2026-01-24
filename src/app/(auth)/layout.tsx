@@ -1,12 +1,32 @@
 import type { ReactNode } from "react";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
 
-export default function AuthLayout({
+export default async function AuthLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  const session = await getServerSession(authOptions);
+
+  // If user is already authenticated, redirect to their portal
+  if (session) {
+    const rolePortals: Record<string, string> = {
+      STUDENT: "/student",
+      INSTRUCTOR: "/instructor/dashboard",
+      ADVISOR: "/advisor/dashboard",
+      ADMIN: "/admin/dashboard",
+    };
+
+    const targetPortal = rolePortals[session.user.role];
+    if (targetPortal) {
+      redirect(targetPortal);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-700 px-4 py-12">
+    <div className="flex min-h-screen">
       {children}
     </div>
   );

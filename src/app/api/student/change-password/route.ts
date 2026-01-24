@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { verifyResetToken } from '@/lib/tokens';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
@@ -12,12 +13,12 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { currentPassword, newPassword } = body;
+        const { currentPassword, newPassword, resetToken } = body;
 
-        // Validate inputs
-        if (!currentPassword || !newPassword) {
+        // Validate new password
+        if (!newPassword) {
             return NextResponse.json(
-                { error: 'Current password and new password are required' },
+                { error: 'New password is required' },
                 { status: 400 }
             );
         }
@@ -29,21 +30,57 @@ export async function POST(request: Request) {
             );
         }
 
-        // Get user with password
+        // Get user
         const user = await prisma.user.findUnique({
             where: { email: session.user.email },
-            select: { id: true, passwordHash: true },
+            select: { id: true, passwordHash: true, email: true },
         });
 
-        if (!user || !user.passwordHash) {
+        if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // Verify current password
-        const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
-        if (!isPasswordValid) {
+        // Two methods of authentication:
+        // 1. Using reset token (OTP verified)
+        // 2. Using current password (traditional)
+
+        if (resetToken) {
+            // Method 1: Verify reset token
+            const tokenData = verifyResetToken(resetToken);
+
+            if (!tokenData) {
+                return NextResponse.json(
+                    { error: 'Invalid or expired reset token' },
+                    { status: 400 }
+                );
+            }
+
+            // Verify token email matches session email
+            if (tokenData.email !== session.user.email) {
+                return NextResponse.json(
+                    { error: 'Token email mismatch' },
+                    { status: 400 }
+                );
+            }
+        } else if (currentPassword) {
+            // Method 2: Verify current password
+            if (!user.passwordHash) {
+                return NextResponse.json(
+                    { error: 'User has no password set' },
+                    { status: 400 }
+                );
+            }
+
+            const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+            if (!isPasswordValid) {
+                return NextResponse.json(
+                    { error: 'Current password is incorrect' },
+                    { status: 400 }
+                );
+            }
+        } else {
             return NextResponse.json(
-                { error: 'Current password is incorrect' },
+                { error: 'Either currentPassword or resetToken is required' },
                 { status: 400 }
             );
         }

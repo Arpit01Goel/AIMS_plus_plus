@@ -11,7 +11,7 @@ export default async function HomePage() {
 
   switch (session.user.role) {
     case "STUDENT":
-      redirect("/student/dashboard")
+      redirect("/student")
     case "INSTRUCTOR":
       redirect("/instructor/dashboard")
     case "ADVISOR":

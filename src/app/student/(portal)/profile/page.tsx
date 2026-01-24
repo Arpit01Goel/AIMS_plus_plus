@@ -51,10 +51,18 @@ export default function ProfilePage() {
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    otp: ''
   });
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [resetToken, setResetToken] = useState<string | null>(null);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Contact form state
   const [contactForm, setContactForm] = useState({
@@ -138,12 +146,89 @@ export default function ProfilePage() {
     }
   }, [showContactModal, profile]);
 
+  // Send OTP to user's email
+  const handleSendOTP = async () => {
+    if (!profile?.email) {
+      setPasswordError('Email not found');
+      return;
+    }
+
+    try {
+      setSendingOtp(true);
+      setPasswordError(null);
+      setPasswordSuccess(null);
+
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: profile.email })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send OTP');
+      }
+
+      setOtpSent(true);
+      setPasswordSuccess('OTP sent to your email. Please check your inbox.');
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Failed to send OTP');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  // Verify OTP
+  const handleVerifyOTP = async () => {
+    if (!profile?.email) {
+      setPasswordError('Email not found');
+      return;
+    }
+
+    if (!passwordForm.otp || passwordForm.otp.length !== 6) {
+      setPasswordError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      setPasswordError(null);
+      setPasswordSuccess(null);
+
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: profile.email,
+          otp: passwordForm.otp
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Invalid OTP');
+      }
+
+      setOtpVerified(true);
+      setResetToken(data.resetToken);
+      setPasswordSuccess('OTP verified successfully! You can now change your password.');
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'OTP verification failed');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // Change password after OTP verification
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError(null);
+    setPasswordSuccess(null);
 
     // Validation
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+    if (!passwordForm.newPassword || !passwordForm.confirmPassword) {
       setPasswordError('All fields are required');
       return;
     }
@@ -158,13 +243,18 @@ export default function ProfilePage() {
       return;
     }
 
+    if (!otpVerified || !resetToken) {
+      setPasswordError('Please verify OTP first');
+      return;
+    }
+
     try {
       setPasswordLoading(true);
       const response = await fetch('/api/student/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
+          resetToken: resetToken,
           newPassword: passwordForm.newPassword
         })
       });
@@ -178,7 +268,12 @@ export default function ProfilePage() {
       // Success
       alert('Password changed successfully!');
       setShowPasswordModal(false);
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      // Reset all state
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+      setOtpSent(false);
+      setOtpVerified(false);
+      setResetToken(null);
+      setPasswordSuccess(null);
     } catch (err) {
       setPasswordError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -466,7 +561,7 @@ export default function ProfilePage() {
 
       {/* Password Change Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-lg">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-xl font-bold text-slate-900">Change Password</h3>
@@ -474,7 +569,11 @@ export default function ProfilePage() {
                 onClick={() => {
                   setShowPasswordModal(false);
                   setPasswordError(null);
-                  setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                  setPasswordSuccess(null);
+                  setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+                  setOtpSent(false);
+                  setOtpVerified(false);
+                  setResetToken(null);
                 }}
                 className="rounded p-1 hover:bg-slate-100"
               >
@@ -483,6 +582,42 @@ export default function ProfilePage() {
                 </svg>
               </button>
             </div>
+
+            {/* Step indicator */}
+            <div className="mb-4 flex items-center justify-center gap-2">
+              <div className={`flex items-center gap-2 ${
+                !otpSent ? 'text-indigo-600' : 'text-indigo-600'
+              }`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                  !otpSent ? 'bg-indigo-100' : 'bg-indigo-100'
+                }`}>
+                  {otpSent ? '✓' : '1'}
+                </div>
+                <span className="text-xs font-medium">Send OTP</span>
+              </div>
+              <div className="h-px w-8 bg-slate-300"></div>
+              <div className={`flex items-center gap-2 ${
+                otpSent && !otpVerified ? 'text-indigo-600' : otpVerified ? 'text-indigo-600' : 'text-slate-400'
+              }`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                  otpSent && !otpVerified ? 'bg-indigo-100' : otpVerified ? 'bg-indigo-100' : 'bg-slate-100'
+                }`}>
+                  {otpVerified ? '✓' : '2'}
+                </div>
+                <span className="text-xs font-medium">Verify</span>
+              </div>
+              <div className="h-px w-8 bg-slate-300"></div>
+              <div className={`flex items-center gap-2 ${
+                otpVerified ? 'text-indigo-600' : 'text-slate-400'
+              }`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                  otpVerified ? 'bg-indigo-100' : 'bg-slate-100'
+                }`}>
+                  3
+                </div>
+                <span className="text-xs font-medium">Change</span>
+              </div>
+            </div>
             
             {passwordError && (
               <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-200">
@@ -490,65 +625,171 @@ export default function ProfilePage() {
               </div>
             )}
 
-            <form onSubmit={handleChangePassword} className="space-y-3">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Current Password</label>
-                <input
-                  type="password"
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                  placeholder="Enter current password"
-                  disabled={passwordLoading}
-                />
+            {passwordSuccess && (
+              <div className="mb-4 rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-700 border border-indigo-200">
+                {passwordSuccess}
               </div>
-              
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">New Password</label>
-                <input
-                  type="password"
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                  placeholder="Enter new password"
-                  disabled={passwordLoading}
-                />
-              </div>
-              
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">Confirm New Password</label>
-                <input
-                  type="password"
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                  placeholder="Confirm new password"
-                  disabled={passwordLoading}
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-3">
+            )}
+
+            {/* Step 1: Send OTP */}
+            {!otpSent && (
+              <div className="space-y-4">
+                <p className="text-sm text-slate-600">
+                  We'll send a verification code to <span className="font-semibold text-slate-900">{profile?.email}</span>
+                </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowPasswordModal(false);
-                    setPasswordError(null);
-                    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                  }}
-                  className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  disabled={passwordLoading}
+                  onClick={handleSendOTP}
+                  disabled={sendingOtp}
+                  className="w-full rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-3 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600 disabled:opacity-50"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600 disabled:opacity-50"
-                  disabled={passwordLoading}
-                >
-                  {passwordLoading ? 'Changing...' : 'Change Password'}
+                  {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
                 </button>
               </div>
-            </form>
+            )}
+
+            {/* Step 2: Verify OTP */}
+            {otpSent && !otpVerified && (
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Enter OTP</label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={passwordForm.otp}
+                    onChange={(e) => setPasswordForm(prev => ({ ...prev, otp: e.target.value.replace(/\D/g, '') }))}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-center text-lg font-mono tracking-widest focus:border-indigo-500 focus:outline-none"
+                    placeholder="000000"
+                    disabled={passwordLoading}
+                  />
+                  <p className="mt-1 text-xs text-slate-500">Enter the 6-digit code sent to your email</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSendOTP}
+                    disabled={sendingOtp}
+                    className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    {sendingOtp ? 'Sending...' : 'Resend OTP'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleVerifyOTP}
+                    disabled={passwordLoading || passwordForm.otp.length !== 6}
+                    className="flex-1 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600 disabled:opacity-50"
+                  >
+                    {passwordLoading ? 'Verifying...' : 'Verify OTP'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Change Password */}
+            {otpVerified && (
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                {/* New Password */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">New Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-4 w-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-12 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                      placeholder="Enter new password"
+                      disabled={passwordLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                    >
+                      {showNewPassword ? (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">Minimum 6 characters</p>
+                </div>
+                
+                {/* Confirm New Password */}
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Confirm New Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-4 w-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      className="w-full rounded-lg border border-slate-300 bg-white pl-10 pr-12 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                      placeholder="Confirm new password"
+                      disabled={passwordLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600"
+                    >
+                      {showConfirmPassword ? (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordModal(false);
+                      setPasswordError(null);
+                      setPasswordSuccess(null);
+                      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+                      setOtpSent(false);
+                      setOtpVerified(false);
+                      setResetToken(null);
+                      setShowNewPassword(false);
+                      setShowConfirmPassword(false);
+                    }}
+                    className="flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    disabled={passwordLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 rounded-lg bg-gradient-to-r from-indigo-900 to-indigo-700 px-4 py-2 text-sm font-semibold text-white transition hover:from-indigo-800 hover:to-indigo-600 disabled:opacity-50"
+                    disabled={passwordLoading}
+                  >
+                    {passwordLoading ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

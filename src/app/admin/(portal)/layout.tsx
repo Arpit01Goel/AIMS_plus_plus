@@ -18,7 +18,7 @@ export default async function AdminPortalLayout({
   // Validate user has ADMIN role
   if (session.user.role !== "ADMIN") {
     const rolePortals: Record<string, string> = {
-      STUDENT: "/student/dashboard",
+      STUDENT: "/student",
       INSTRUCTOR: "/instructor/dashboard",
       ADVISOR: "/advisor/dashboard",
     };

@@ -14,7 +14,7 @@ const ROUTE_CONFIGS: RouteConfig[] = [
     {
         pattern: /^\/student/,
         requiredRole: 'STUDENT',
-        portalHome: '/student/dashboard',
+        portalHome: '/student',
     },
     {
         pattern: /^\/instructor/,
@@ -34,7 +34,7 @@ const ROUTE_CONFIGS: RouteConfig[] = [
 ];
 
 const ROLE_PORTAL_HOMES: Record<UserRole, string> = {
-    STUDENT: '/student/dashboard',
+    STUDENT: '/student',
     INSTRUCTOR: '/instructor/dashboard',
     ADVISOR: '/advisor/dashboard',
     ADMIN: '/admin/dashboard',

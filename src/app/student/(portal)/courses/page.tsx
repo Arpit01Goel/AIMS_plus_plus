@@ -26,6 +26,7 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'enrolled'>('all');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [actionsModalOpen, setActionsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -54,7 +55,10 @@ export default function CoursesPage() {
     fetchCourses();
   }, []);
 
-  // Filter courses based on search query and tab
+  // Get unique departments for filter
+  const departments = Array.from(new Set(courses.map(c => c.department))).sort();
+
+  // Filter courses based on search query, tab, and department
   const filteredCourses = courses.filter((course) => {
     const matchesSearch =
       course.courseCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -65,8 +69,9 @@ export default function CoursesPage() {
       );
 
     const matchesTab = activeTab === 'all' ? true : course.isEnrolled;
+    const matchesDepartment = selectedDepartment === 'all' ? true : course.department === selectedDepartment;
 
-    return matchesSearch && matchesTab;
+    return matchesSearch && matchesTab && matchesDepartment;
   });
 
   // Separate enrolled and available courses
@@ -240,14 +245,19 @@ export default function CoursesPage() {
           <span className="font-medium">{course.enrolments}</span>
         </div>
 
-        {course.isEnrolled ? (
-          /* Actions Button - Always enabled for enrolled courses */
+        {course.isEnrolled? (
+          /* Actions Button - Enabled only for ENROLLED status */
           <button
             onClick={() => {
               setSelectedCourse(course);
               setActionsModalOpen(true);
             }}
-            className="flex-shrink-0 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            disabled={course.enrollmentStatus !== 'ENROLLED'}
+            className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
+              course.enrollmentStatus !== 'ENROLLED'
+                ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
+                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+            }`}
           >
             Actions
           </button>
@@ -384,6 +394,28 @@ export default function CoursesPage() {
             )}
           </div>
           
+          {/* Department Filter Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="min-w-[200px] appearance-none rounded-lg border-2 border-slate-300 bg-white px-5 py-3 pr-12 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-300 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+            >
+              <option value="all">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+            {/* Custom Dropdown Arrow */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+              <svg className="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
           <button
             onClick={() => setActiveTab(activeTab === 'all' ? 'enrolled' : 'all')}
             className={`flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold shadow-sm transition ${

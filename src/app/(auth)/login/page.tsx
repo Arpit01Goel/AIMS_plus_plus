@@ -168,16 +168,86 @@ function LoginForm() {
         </div>
       )}
 
-      <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6 shadow-2xl">
-        {/* Header */}
-        <div className="text-center mb-5">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Welcome Back
-          </h1>
-          <p className="mt-2 text-sm text-indigo-100">
-            IIT Ropar Academic Portal
-          </p>
+      {/* Two Column Layout */}
+      <div className="flex w-full min-h-screen">
+        {/* Left Column - Branding */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-indigo-950 to-indigo-900 items-center justify-center p-12 relative overflow-hidden">
+          {/* Animated background elements */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+          </div>
+
+          <div className="relative z-10 text-center space-y-8 animate-fade-in">
+            {/* Logo Icon */}
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-indigo-800 rounded-3xl blur-xl opacity-50 animate-pulse"></div>
+                <div className="relative bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 rounded-3xl shadow-2xl transform hover:scale-105 transition-transform duration-300">
+                  <svg
+                    className="w-24 h-24 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 14l9-5-9-5-9 5 9 5z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="space-y-4">
+              <h1 className="text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-200 via-purple-200 to-pink-200 tracking-tight animate-shine">
+                AIMS++
+              </h1>
+              <div className="h-1 w-32 mx-auto bg-gradient-to-r from-transparent via-indigo-400 to-transparent rounded-full"></div>
+              <p className="text-2xl font-light text-indigo-200 tracking-wide">
+                IIT Ropar Academic Portal
+              </p>
+            </div>
+
+            {/* Subtitle */}
+            <p className="text-lg text-indigo-300/80 max-w-md mx-auto leading-relaxed">
+              Advanced Integrated Management System for streamlined academic excellence
+            </p>
+
+            {/* Decorative elements */}
+            <div className="flex justify-center gap-3 pt-8">
+              <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce"></div>
+              <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          </div>
         </div>
+
+        {/* Right Column - Login Form */}
+        <div className="w-full lg:w-1/2 bg-gradient-to-br from-indigo-950 via-indigo-900 to-indigo-700 flex items-center justify-center p-4 md:p-12">
+          <div className="w-full max-w-md">
+            <div className="w-full rounded-2xl border border-white/20 bg-white/10 backdrop-blur-md p-6 md:p-8 shadow-2xl">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold tracking-tight text-white">
+                  Login
+                </h2>
+              </div>
 
         {/* Google Sign In */}
         <button
@@ -390,6 +460,22 @@ function LoginForm() {
             </div>
           </button>
         </form>
+
+              {/* Signup Link */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-indigo-200">
+                  Don't have an account?{" "}
+                  <Link
+                    href="/signup"
+                    className="font-medium text-white hover:underline"
+                  >
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );
