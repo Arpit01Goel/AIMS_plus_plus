@@ -29,11 +29,13 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const {
+      courseId, // ID of existing course to use
       courseCode,
       courseTitle,
       credits,
       ltpsc,
       category,
+      degree,
       capacity,
       slot,
       sessionCode,
@@ -41,38 +43,63 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate required fields
-    if (!courseCode || !courseTitle || !credits || !category || !sessionCode) {
+    if (!sessionCode) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Session code is required' },
         { status: 400 }
       );
     }
 
-    // Validate category
-    const validCategories = ['SC', 'SE', 'GR', 'PC', 'PE', 'HC', 'HE', 'CP', 'CT', 'NN', 'OC'];
-    if (!validCategories.includes(category)) {
-      return NextResponse.json(
-        { error: 'Invalid course category' },
-        { status: 400 }
-      );
-    }
+    let course;
 
-    // Find or create the course
-    let course = await prisma.course.findUnique({
-      where: { code: courseCode },
-    });
-
-    if (!course) {
-      course = await prisma.course.create({
-        data: {
-          code: courseCode,
-          title: courseTitle,
-          credits: parseInt(credits),
-          ltpsc: ltpsc || '0-0-0-0',
-          category: category as any,
-          departmentId: user.instructor.departmentId,
-        },
+    // If courseId is provided, use existing course
+    if (courseId) {
+      course = await prisma.course.findUnique({
+        where: { id: courseId },
       });
+
+      if (!course) {
+        return NextResponse.json(
+          { error: 'Course not found' },
+          { status: 404 }
+        );
+      }
+    } else {
+      // Otherwise, validate and create/find new course
+      if (!courseCode || !courseTitle || !credits || !category) {
+        return NextResponse.json(
+          { error: 'Missing required course fields' },
+          { status: 400 }
+        );
+      }
+
+      // Validate category
+      const validCategories = ['SC', 'SE', 'GR', 'PC', 'PE', 'HC', 'HE', 'CP', 'CT', 'NN', 'OC'];
+      if (!validCategories.includes(category)) {
+        return NextResponse.json(
+          { error: 'Invalid course category' },
+          { status: 400 }
+        );
+      }
+
+      // Find or create the course
+      course = await prisma.course.findUnique({
+        where: { code: courseCode },
+      });
+
+      if (!course) {
+        course = await prisma.course.create({
+          data: {
+            code: courseCode,
+            title: courseTitle,
+            credits: parseInt(credits),
+            ltpsc: ltpsc || '0-0-0-0',
+            category: category as any,
+            degree: degree || null,
+            departmentId: user.instructor.departmentId,
+          },
+        });
+      }
     }
 
     // Find academic session

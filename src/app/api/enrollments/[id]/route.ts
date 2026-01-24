@@ -12,8 +12,9 @@ import { recalculateStudentRecord } from '@/services/student-record.service';
  */
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id: enrollmentId } = await params;
     try {
         const session = await getServerSession(authOptions);
 
@@ -24,7 +25,7 @@ export async function PATCH(
             );
         }
 
-        const enrollmentId = params.id;
+
         const body = await request.json();
         const { grade, status, attendancePercentage } = body;
 
@@ -140,8 +141,9 @@ export async function PATCH(
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     try {
         const session = await getServerSession(authOptions);
 
@@ -153,7 +155,7 @@ export async function GET(
         }
 
         const enrollment = await prisma.enrollment.findUnique({
-            where: { id: params.id },
+            where: { id },
             include: {
                 student: {
                     include: {

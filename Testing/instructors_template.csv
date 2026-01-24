@@ -1,0 +1,6 @@
+name,email,password,role,entryNumber,batch,phone,address,department,program,advisor,title,officialEmail
+Dr. Rajesh Kumar,rajesh.kumar@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Dr.,rajesh.kumar@iitrpr.ac.in
+Prof. Amit Sharma,amit.sharma@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Computer Science & Engineering,,,Prof.,amit.sharma@iitrpr.ac.in
+Dr. Neha Verma,neha.verma@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Dr.,neha.verma@iitrpr.ac.in
+Asst. Prof. Suresh Reddy,suresh.reddy@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Electrical Engineering,,,Asst. Prof.,suresh.reddy@iitrpr.ac.in
+Prof. Manoj Singh,manoj.singh@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.,manoj.singh@iitrpr.ac.in

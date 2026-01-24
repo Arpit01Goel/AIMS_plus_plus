@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
-          include: { student: true, instructor: true, advisor: true, admin: true },
+          include: { student: true, instructor: true, admin: true },
         });
 
         if (!user || !user.passwordHash) {
@@ -56,8 +56,8 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           studentId: user.student?.id,
           instructorId: user.instructor?.id,
-          advisorId: user.advisor?.id,
           adminId: user.admin?.id,
+          isAdvisor: user.instructor?.isAdvisor || false,
         }
       },
     }),
@@ -98,15 +98,15 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.studentId = user.studentId;
         token.instructorId = user.instructorId;
-        token.advisorId = user.advisorId;
         token.adminId = user.adminId;
+        token.isAdvisor = user.isAdvisor;
       }
 
       // For OAuth login (Google), fetch user from database
       if (account?.provider === 'google' && token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
-          include: { student: true, instructor: true, advisor: true, admin: true },
+          include: { student: true, instructor: true, admin: true },
         });
 
         if (dbUser) {
@@ -114,8 +114,8 @@ export const authOptions: NextAuthOptions = {
           token.role = dbUser.role;
           token.studentId = dbUser.student?.id;
           token.instructorId = dbUser.instructor?.id;
-          token.advisorId = dbUser.advisor?.id;
           token.adminId = dbUser.admin?.id;
+          token.isAdvisor = dbUser.instructor?.isAdvisor || false;
         }
       }
 
@@ -124,11 +124,11 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as "STUDENT" | "INSTRUCTOR" | "ADVISOR" | "ADMIN";
+        session.user.role = token.role as "STUDENT" | "INSTRUCTOR" | "ADMIN";
         session.user.studentId = token.studentId as string | undefined;
         session.user.instructorId = token.instructorId as string | undefined;
-        session.user.advisorId = token.advisorId as string | undefined;
         session.user.adminId = token.adminId as string | undefined;
+        session.user.isAdvisor = token.isAdvisor as boolean | undefined;
       }
       return session;
     },

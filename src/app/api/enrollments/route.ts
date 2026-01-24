@@ -12,14 +12,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { action, enrollmentId, offeringId, enrollmentType } = body;
+    const { action, enrollmentId, enrollmentIds, offeringId, enrollmentType } = body;
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: {
         student: true,
         instructor: true,
-        advisor: true,
       },
     });
 
@@ -68,6 +67,82 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Enrollment request submitted',
         enrollmentId: enrollment.id,
+      });
+    }
+
+    // Instructor bulk approve/reject
+    if ((action === 'bulk_approve' || action === 'bulk_reject') && user.role === 'INSTRUCTOR' && user.instructor) {
+      if (!enrollmentIds || !Array.isArray(enrollmentIds) || enrollmentIds.length === 0) {
+        return NextResponse.json(
+          { error: 'enrollmentIds array required' },
+          { status: 400 }
+        );
+      }
+
+      // Fetch all enrollments at once to validate
+      const enrollments = await prisma.enrollment.findMany({
+        where: {
+          id: { in: enrollmentIds },
+          offering: {
+            instructorId: user.instructor.id,
+          },
+          status: 'PENDING_INSTRUCTOR_APPROVAL',
+        },
+        include: {
+          offering: true,
+        },
+      });
+
+      if (enrollments.length !== enrollmentIds.length) {
+        return NextResponse.json(
+          { error: 'Some enrollments not found or not pending' },
+          { status: 404 }
+        );
+      }
+
+      const newStatus = action === 'bulk_approve' ? 'PENDING_ADVISOR_APPROVAL' : 'REJECTED_BY_INSTRUCTOR';
+      const results = { success: 0, failed: 0, errors: [] as string[] };
+
+      // Process each enrollment
+      for (const enrollment of enrollments) {
+        try {
+          // Check capacity if approving
+          if (action === 'bulk_approve') {
+            const enrolledCount = await prisma.enrollment.count({
+              where: {
+                offeringId: enrollment.offeringId,
+                status: 'ENROLLED',
+              },
+            });
+
+            if (enrolledCount >= enrollment.offering.capacity) {
+              results.failed++;
+              results.errors.push(`Course ${enrollment.offering.id} at capacity`);
+              continue;
+            }
+          }
+
+          await prisma.enrollment.update({
+            where: { id: enrollment.id },
+            data: {
+              status: newStatus,
+              updatedById: user.id,
+            },
+          });
+
+          results.success++;
+        } catch (err) {
+          results.failed++;
+          results.errors.push(`Failed to process enrollment ${enrollment.id}`);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: action === 'bulk_approve'
+          ? `${results.success} enrollments approved, ${results.failed} failed`
+          : `${results.success} enrollments rejected, ${results.failed} failed`,
+        results,
       });
     }
 
@@ -130,14 +205,14 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: action === 'approve' 
-          ? 'Enrollment approved and sent to advisor for final approval' 
+        message: action === 'approve'
+          ? 'Enrollment approved and sent to advisor for final approval'
           : 'Enrollment rejected',
       });
     }
 
-    // Advisor approve/reject
-    if ((action === 'approve' || action === 'reject') && user.role === 'ADVISOR' && user.advisor) {
+    // Advisor approve/reject (instructors who are advisors)
+    if ((action === 'approve' || action === 'reject') && user.role === 'INSTRUCTOR' && user.instructor?.isAdvisor) {
       if (!enrollmentId) {
         return NextResponse.json(
           { error: 'enrollmentId required' },
@@ -150,7 +225,7 @@ export async function POST(request: NextRequest) {
           id: enrollmentId,
           status: 'PENDING_ADVISOR_APPROVAL',
           student: {
-            advisorId: user.advisor.id,
+            advisorId: user.instructor.id,
           },
         },
         include: {
@@ -196,9 +271,76 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: action === 'approve' 
-          ? 'Student enrollment finalized successfully' 
+        message: action === 'approve'
+          ? 'Student enrollment finalized successfully'
           : 'Enrollment rejected',
+      });
+    }
+
+    // Admin bulk enroll by pattern
+    if (action === 'bulk_enroll_admin' && user.role === 'ADMIN') {
+      const { offeringId, pattern } = body;
+      if (!offeringId || !pattern) {
+        return NextResponse.json({ error: 'offeringId and pattern required' }, { status: 400 });
+      }
+
+      // Convert pattern like 2021CS* to Prisma startsWith
+      const searchPattern = pattern.replace(/\*/g, '');
+
+      const offering = await prisma.courseOffering.findUnique({
+        where: { id: offeringId },
+        include: { _count: { select: { enrollments: true } } }
+      });
+
+      if (!offering) {
+        return NextResponse.json({ error: 'Offering not found' }, { status: 404 });
+      }
+
+      // Find students matching pattern
+      const students = await prisma.student.findMany({
+        where: {
+          entryNumber: {
+            startsWith: searchPattern,
+            mode: 'insensitive'
+          },
+          // Exclude students already enrolled
+          enrollments: {
+            none: {
+              offeringId: offeringId
+            }
+          }
+        }
+      });
+
+      if (students.length === 0) {
+        return NextResponse.json({ message: 'No more students found matching this pattern' }, { status: 200 });
+      }
+
+      // Check capacity
+      const remainingCapacity = offering.capacity - offering._count.enrollments;
+      const studentsToEnroll = students.slice(0, remainingCapacity);
+
+      if (studentsToEnroll.length === 0) {
+        return NextResponse.json({ error: 'Offering is already at full capacity' }, { status: 400 });
+      }
+
+      // Create enrollments
+      await prisma.enrollment.createMany({
+        data: studentsToEnroll.map(student => ({
+          studentId: student.id,
+          offeringId: offeringId,
+          status: 'ENROLLED', // Admin direct enrollment
+          enrollmentType: 'CREDIT',
+          createdById: user.id
+        })),
+        skipDuplicates: true
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully enrolled ${studentsToEnroll.length} students.`,
+        enrolledCount: studentsToEnroll.length,
+        skippedCount: students.length - studentsToEnroll.length
       });
     }
 
@@ -225,7 +367,7 @@ export async function GET() {
       include: {
         student: true,
         instructor: true,
-        advisor: true,
+
       },
     });
 
@@ -283,6 +425,8 @@ export async function GET() {
             include: {
               user: true,
               program: true,
+              department: true,
+              record: true,
             },
           },
           offering: {
@@ -295,6 +439,40 @@ export async function GET() {
         orderBy: { createdAt: 'desc' },
       });
 
+      // Get all departments for filter options
+      const departments = await prisma.department.findMany({
+        orderBy: { code: 'asc' },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+        },
+      });
+
+      // Get unique years/batches from students with pending enrollments
+      const uniqueBatches = await prisma.student.findMany({
+        where: {
+          enrollments: {
+            some: {
+              status: 'PENDING_INSTRUCTOR_APPROVAL',
+              offering: {
+                instructorId: user.instructor.id,
+              },
+            },
+          },
+          batch: {
+            not: null,
+          },
+        },
+        select: {
+          batch: true,
+        },
+        distinct: ['batch'],
+        orderBy: {
+          batch: 'desc',
+        },
+      });
+
       return NextResponse.json({
         pending: pendingEnrollments.map((e) => ({
           id: e.id,
@@ -303,6 +481,10 @@ export async function GET() {
             name: e.student.user.name,
             entryNumber: e.student.entryNumber,
             program: e.student.program?.code || 'N/A',
+            department: e.student.department?.code || 'N/A',
+            branch: e.student.department?.name || 'N/A',
+            batch: e.student.batch || null,
+            cgpa: e.student.record?.cgpa || 0,
           },
           course: {
             code: e.offering.course.code,
@@ -312,16 +494,23 @@ export async function GET() {
           enrollmentType: e.enrollmentType,
           createdAt: e.createdAt,
         })),
+        filters: {
+          departments: departments.map(d => ({
+            code: d.code,
+            name: d.name,
+          })),
+          batches: uniqueBatches.map(b => b.batch).filter(Boolean),
+        },
       });
     }
 
-    // Advisor: get pending approvals for their advisees
-    if (user.role === 'ADVISOR' && user.advisor) {
+    // Advisor: get pending approvals for their advisees (instructors who are advisors)
+    if (user.role === 'INSTRUCTOR' && user.instructor?.isAdvisor) {
       const pendingEnrollments = await prisma.enrollment.findMany({
         where: {
           status: 'PENDING_ADVISOR_APPROVAL' as any,
           student: {
-            advisorId: user.advisor.id,
+            advisorId: user.instructor.id,
           },
         },
         include: {
