@@ -85,9 +85,9 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
         >
           <Menu className="h-5 w-5 shrink-0" />
           {!collapsed && (
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>
-              <p className="text-xs text-indigo-200">Student Portal</p>
+            <div className="flex flex-col text-left">
+              <h1 className="text-xl font-bold tracking-tight text-white leading-none">AIMS++</h1>
+              <span className="text-[0.65rem] font-bold text-indigo-200 uppercase tracking-wider mt-0.5">Student Portal</span>
             </div>
           )}
         </button>

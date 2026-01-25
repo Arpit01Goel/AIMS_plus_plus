@@ -5,8 +5,8 @@ import { GraduationCap } from "lucide-react";
 export default async function StudentWelcomePage() {
   const session = await getServerSession(authOptions);
   
-  // Get the first name from the full name if available
-  const firstName = session?.user?.name?.split(" ")[0] || "Student";
+  // Get the full name
+  const name = session?.user?.name || "Student";
 
   return (
     <div className="flex items-center justify-center">
@@ -14,7 +14,7 @@ export default async function StudentWelcomePage() {
 
         {/* Welcome Message */}
         <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-900" style={{ fontSize: '2rem', marginBottom: '3rem' }}>
-          Welcome Back, {firstName}
+          Welcome Back, {name}
         </h1>
 
         {/* Icon Widget */}

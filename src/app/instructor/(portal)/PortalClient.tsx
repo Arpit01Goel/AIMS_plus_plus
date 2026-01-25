@@ -106,7 +106,12 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Menu className="h-5 w-5 shrink-0" />
-          {!collapsed && <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>}
+          {!collapsed && (
+            <div className="flex flex-col text-left">
+              <h1 className="text-xl font-bold tracking-tight text-white leading-none">AIMS++</h1>
+              <span className="text-[0.65rem] font-bold text-indigo-200 uppercase tracking-wider mt-0.5">Instructor Portal</span>
+            </div>
+          )}
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Course {
   id: string;
@@ -21,6 +22,7 @@ interface Course {
 }
 
 export default function CoursesPage() {
+  const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -233,51 +235,65 @@ export default function CoursesPage() {
       <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-2">
         {getStatusBadge(course.status)}
         
-        <div className="flex items-center gap-1.5 text-xs text-slate-600">
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-            />
-          </svg>
-          <span className="font-medium">{course.enrolments}</span>
-        </div>
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <span className="font-medium">{course.enrolments}</span>
+          </div>
 
-        {course.isEnrolled? (
-          /* Actions Button - Enabled only for ENROLLED status */
           <button
-            onClick={() => {
-              setSelectedCourse(course);
-              setActionsModalOpen(true);
-            }}
-            disabled={course.enrollmentStatus !== 'ENROLLED'}
-            className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
-              course.enrollmentStatus !== 'ENROLLED'
-                ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
-                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-            }`}
+            onClick={() => router.push(`/student/courses/${course.id}`)}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm transition hover:border-indigo-300 hover:text-indigo-600"
+            title="View Course Details"
           >
-            Actions
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>View Enrolled</span>
           </button>
-        ) : (
-          /* Enroll Button - Disabled if course is not enrolling */
-          <button
-            onClick={() => {
-              setSelectedCourse(course);
-              setEnrollModalOpen(true);
-            }}
-            disabled={course.status !== 'enrolling'}
-            className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
-              course.status !== 'enrolling'
-                ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
-                : 'bg-gradient-to-r from-indigo-900 to-indigo-700 text-white hover:from-indigo-800 hover:to-indigo-600'
-            }`}
-          >
-            Enroll
-          </button>
-        )}
+
+          {course.isEnrolled ? (
+            /* Actions Button - Enabled only for ENROLLED status */
+            <button
+              onClick={() => {
+                setSelectedCourse(course);
+                setActionsModalOpen(true);
+              }}
+              disabled={course.enrollmentStatus !== 'ENROLLED'}
+              className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
+                course.enrollmentStatus !== 'ENROLLED'
+                  ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
+                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Actions
+            </button>
+          ) : (
+            /* Enroll Button - Disabled if course is not enrolling */
+            <button
+              onClick={() => {
+                setSelectedCourse(course);
+                setEnrollModalOpen(true);
+              }}
+              disabled={course.status !== 'enrolling'}
+              className={`flex-shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-sm transition ${
+                course.status !== 'enrolling'
+                  ? 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
+                  : 'bg-gradient-to-r from-indigo-900 to-indigo-700 text-white hover:from-indigo-800 hover:to-indigo-600'
+              }`}
+            >
+              Enroll
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Enrollment Status Section - Only for enrolled courses */}

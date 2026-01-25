@@ -93,22 +93,12 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
         >
           <Menu className="h-5 w-5 shrink-0" />
           {!collapsed && (
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-white">AIMS++</h1>
-              <p className="text-xs text-indigo-200">Admin Portal</p>
+            <div className="flex flex-col text-left">
+              <h1 className="text-xl font-bold tracking-tight text-white leading-none">AIMS++</h1>
+              <span className="text-[0.65rem] font-bold text-indigo-200 uppercase tracking-wider mt-0.5">Admin Portal</span>
             </div>
           )}
         </button>
-      </div>
-
-      <div className="flex items-center gap-2 border-b border-white/20 px-4 py-3">
-        <Shield className="h-5 w-5 text-indigo-200" />
-        {!collapsed && (
-          <div className="text-xs">
-            <p className="font-semibold text-white">Administrator</p>
-            <p className="text-indigo-200">ACA Role</p>
-          </div>
-        )}
       </div>
 
       <ul className="mt-6 space-y-1.5 overflow-y-auto px-4 pb-20 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:bg-transparent" style={{ maxHeight: "calc(100vh - 180px)" }}>

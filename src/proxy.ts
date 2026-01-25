@@ -29,7 +29,7 @@ const ROUTE_CONFIGS: RouteConfig[] = [
     {
         pattern: /^\/admin/,
         requiredRole: 'ADMIN',
-        portalHome: '/admin/dashboard',
+        portalHome: '/admin',
     },
 ];
 
@@ -37,7 +37,7 @@ const ROLE_PORTAL_HOMES: Record<UserRole, string> = {
     STUDENT: '/student',
     INSTRUCTOR: '/instructor/dashboard',
     ADVISOR: '/advisor/dashboard',
-    ADMIN: '/admin/dashboard',
+    ADMIN: '/admin',
 };
 
 export async function proxy(request: NextRequest) {
