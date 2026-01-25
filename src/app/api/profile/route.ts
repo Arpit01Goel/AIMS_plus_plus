@@ -34,12 +34,6 @@ export async function GET() {
             },
           },
         },
-        advisor: {
-          include: {
-            department: true,
-            program: true,
-          },
-        },
       },
     });
 
@@ -197,14 +191,21 @@ export async function GET() {
           publications: 0,
         },
       };
-    } else if (user.role === 'ADVISOR' && user.advisor) {
-      profile = {
-        ...profile,
-        department: user.advisor.department?.name || 'N/A',
-        program: user.advisor.program?.name || 'N/A',
-        primaryCohort: user.advisor.primaryCohort,
-        notes: user.advisor.notes,
-      };
+
+      // Add advisor-specific data if instructor is an advisor
+      if (user.instructor?.isAdvisor) {
+        const adviseeCount = await prisma.student.count({
+          where: { advisorId: user.instructor.id },
+        });
+        
+        profile = {
+          ...profile,
+          isAdvisor: true,
+          primaryCohort: user.instructor.primaryCohort,
+          advisorNotes: user.instructor.advisorNotes,
+          totalAdvisees: adviseeCount,
+        };
+      }
     }
 
     return NextResponse.json({ profile });

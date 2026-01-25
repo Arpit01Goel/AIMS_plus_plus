@@ -1,0 +1,6 @@
+name,email,password,role,entryNumber,batch,phone,address,department,program,advisor,title,officialEmail
+Rahul Sharma,2024csb1001@iitrpr.ac.in,password123,STUDENT,2024CSB1001,2024,+91-9876543210,Hostel A Room 101,CSE,BTECH-CSE,advisor@iitrpr.ac.in,,
+Priya Patel,2024csb1002@iitrpr.ac.in,password123,STUDENT,2024CSB1002,2024,+91-9876543211,Hostel B Room 205,Computer Science & Engineering,BTECH-CSE,,,
+Amit Kumar,2024eeb1001@iitrpr.ac.in,password123,STUDENT,2024EEB1001,2024,+91-9876543212,Hostel C Room 301,EE,BTECH-EE,,,
+Sneha Verma,2024meb1001@iitrpr.ac.in,password123,STUDENT,2024MEB1001,2024,+91-9876543213,Hostel D Room 102,Mechanical Engineering,,,
+Arjun Singh,2024csb1003@iitrpr.ac.in,password123,STUDENT,2024CSB1003,2024,,,cse,,,,

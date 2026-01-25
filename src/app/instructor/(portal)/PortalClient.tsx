@@ -18,19 +18,28 @@ import {
   GraduationCap,
   CalendarDays,
   LogOut,
+  UserCheck,
+  Eye,
+  ShieldAlert,
 } from "lucide-react";
 
-const navTabs: NavTab[] = [
+const instructorTabs: NavTab[] = [
   { name: "My Courses", icon: BookOpen, href: "/instructor/courses" },
   { name: "Create Course", icon: GraduationCap, href: "/instructor/create-course" },
   { name: "Grades", icon: FileText, href: "/instructor/grades" },
   { name: "Pending Actions", icon: AlertCircle, href: "/instructor/pending" },
 ];
 
+const advisorTabs: NavTab[] = [
+  { name: "My Students", icon: Users, href: "/instructor/advisor/students", section: "advisor" },
+  { name: "Approvals", icon: ClipboardCheck, href: "/instructor/advisor-approvals", section: "advisor" },
+];
+
 type NavTab = {
   name: string;
   icon: LucideIcon;
   href: string;
+  section?: string;
 };
 
 type PortalClientProps = {
@@ -42,10 +51,15 @@ export default function InstructorPortalClient({ children, session }: PortalClie
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
+  // Combine instructor tabs with advisor tabs if user is an advisor
+  const allTabs = session.user.isAdvisor 
+    ? [...instructorTabs, ...advisorTabs]
+    : instructorTabs;
+
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-900">
       <Sidebar
-        tabs={navTabs}
+        tabs={allTabs}
         collapsed={collapsed}
         onToggle={() => setCollapsed((prev) => !prev)}
         pathname={pathname}
@@ -70,6 +84,11 @@ type SidebarProps = {
 };
 
 function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
+  // Group tabs by section
+  const instructorNavTabs = tabs.filter(tab => !tab.section);
+  const advisorNavTabs = tabs.filter(tab => tab.section === 'advisor');
+  const hasAdvisorSection = advisorNavTabs.length > 0;
+
   return (
     <nav
       className={`fixed left-0 top-0 bottom-0 h-full border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
@@ -92,7 +111,9 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
       </div>
 
       <ul className="mt-6 space-y-1.5 overflow-y-auto px-4 pb-20 [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:bg-transparent" style={{ maxHeight: "calc(100vh - 180px)" }}>
-        {tabs.map((tab) => {
+        {/* Instructor Section */}
+        {!collapsed && <li className="mb-2 mt-2 px-4 text-xs font-semibold uppercase tracking-wider text-indigo-300">Instructor</li>}
+        {instructorNavTabs.map((tab) => {
           const isActive =
             pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           const Icon = tab.icon;
@@ -121,6 +142,42 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
             </li>
           );
         })}
+
+        {/* Advisor Section */}
+        {hasAdvisorSection && (
+          <>
+            {!collapsed && <li className="mb-2 mt-4 px-4 text-xs font-semibold uppercase tracking-wider text-indigo-300">Advisor</li>}
+            {advisorNavTabs.map((tab) => {
+              const isActive =
+                pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+              const Icon = tab.icon;
+              return (
+                <li key={tab.name}>
+                  <Link
+                    href={tab.href}
+                    className={`group flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+                      collapsed
+                        ? "mx-auto h-12 w-12 justify-center"
+                        : "w-full justify-start px-4 py-2.5"
+                    } ${
+                      isActive
+                        ? "bg-white text-indigo-900"
+                        : "text-indigo-100 hover:bg-indigo-800 hover:text-white"
+                    }`}
+                    title={collapsed ? tab.name : undefined}
+                  >
+                    <Icon
+                      className={`h-5 w-5 shrink-0 ${
+                        isActive ? "text-indigo-700" : "text-indigo-200 group-hover:text-white"
+                      }`}
+                    />
+                    {!collapsed && <span className="tracking-tight">{tab.name}</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </>
+        )}
       </ul>
 
       <div className="absolute bottom-0 left-0 right-0 border-t border-white/30 bg-indigo-700 p-4">

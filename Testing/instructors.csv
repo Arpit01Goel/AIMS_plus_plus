@@ -1,0 +1,49 @@
+name,email,password,role,entryNumber,batch,phone,address,department,program,advisor,title,officialEmail
+Dr. Rajesh Kumar,rajesh.kumar@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Dr.,rajesh.kumar@iitrpr.ac.in
+Prof. Amit Sharma,amit.sharma@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Computer Science & Engineering,,,Prof.,amit.sharma@iitrpr.ac.in
+Dr. Neha Verma,neha.verma@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Dr.,neha.verma@iitrpr.ac.in
+Asst. Prof. Suresh Reddy,suresh.reddy@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Electrical Engineering,,,Asst. Prof.,suresh.reddy@iitrpr.ac.in
+Prof. Manoj Singh,manoj.singh@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.,manoj.singh@iitrpr.ac.in
+Dr. Pooja Malhotra,pooja.malhotra@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Dr.,pooja.malhotra@iitrpr.ac.in
+Prof. Anil Gupta,anil.gupta@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Mechanical Engineering,,,Prof.,anil.gupta@iitrpr.ac.in
+Dr. Kavita Joshi,kavita.joshi@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Dr.,kavita.joshi@iitrpr.ac.in
+Asst. Prof. Rakesh Mehta,rakesh.mehta@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Civil Engineering,,,Asst. Prof.,rakesh.mehta@iitrpr.ac.in
+Prof. Sunita Iyer,sunita.iyer@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Prof.,sunita.iyer@iitrpr.ac.in
+Dr. Arjun Patel,arjun.patel@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Dr.,arjun.patel@iitrpr.ac.in
+Dr. Shalini Chawla,shalini.chawla@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Chemical Engineering,,,Dr.,shalini.chawla@iitrpr.ac.in
+Prof. Vikram Rao,vikram.rao@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Prof.,vikram.rao@iitrpr.ac.in
+Asst. Prof. Nitin Agarwal,nitin.agarwal@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Asst. Prof.,nitin.agarwal@iitrpr.ac.in
+Dr. Meera Nair,meera.nair@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Physics,,,Dr.,meera.nair@iitrpr.ac.in
+Prof. Sanjay Khanna,sanjay.khanna@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.,sanjay.khanna@iitrpr.ac.in
+Dr. Ritu Saxena,ritu.saxena@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Mathematics,,,Dr.,ritu.saxena@iitrpr.ac.in
+Asst. Prof. Deepak Bansal,deepak.bansal@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Civil Engineering,,,Asst. Prof.,deepak.bansal@iitrpr.ac.in
+Prof. Alok Mishra,alok.mishra@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Prof.,alok.mishra@iitrpr.ac.in
+Dr. Nisha Kapoor,nisha.kapoor@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Chemical Engineering,,,Dr.,nisha.kapoor@iitrpr.ac.in
+Dr. Pradeep Yadav,pradeep.yadav@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Dr.,pradeep.yadav@iitrpr.ac.in
+Prof. Kunal Bhatia,kunal.bhatia@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.,kunal.bhatia@iitrpr.ac.in
+Asst. Prof. Rina Das,rina.das@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Asst. Prof.,rina.das@iitrpr.ac.in
+Dr. Mohit Arora,mohit.arora@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Physics,,,Dr.,mohit.arora@iitrpr.ac.in
+Prof. Leena Thomas,leena.thomas@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Prof.,leena.thomas@iitrpr.ac.in
+Dr. Ashok Kulkarni,ashok.kulkarni@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Dr.,ashok.kulkarni@iitrpr.ac.in
+Asst. Prof. Pankaj Soni,pankaj.soni@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Civil Engineering,,,Asst. Prof.,pankaj.soni@iitrpr.ac.in
+Prof. Radhika Menon,radhika.menon@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Prof.,radhika.menon@iitrpr.ac.in
+Dr. Sameer Khan,sameer.khan@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Chemical Engineering,,,Dr.,sameer.khan@iitrpr.ac.in
+Dr. Ananya Bose,ananya.bose@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Physics,,,Dr.,ananya.bose@iitrpr.ac.in
+Prof. Harish Malhotra,harish.malhotra@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.,harish.malhotra@iitrpr.ac.in
+Asst. Prof. Sneha Kulkarni,sneha.kulkarni@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Asst. Prof.,sneha.kulkarni@iitrpr.ac.in
+Dr. Vikas Tandon,vikas.tandon@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Dr.,vikas.tandon@iitrpr.ac.in
+Prof. Priya Chatterjee,priya.chatterjee@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Mathematics,,,Prof.,priya.chatterjee@iitrpr.ac.in
+Dr. Rohit Malviya,rohit.malviya@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Civil Engineering,,,Dr.,rohit.malviya@iitrpr.ac.in
+Asst. Prof. Akash Jain,akash.jain@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Asst. Prof.,akash.jain@iitrpr.ac.in
+Prof. Nandita Roy,nandita.roy@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Prof.,nandita.roy@iitrpr.ac.in
+Dr. Gaurav Pandey,gaurav.pandey@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Dr.,gaurav.pandey@iitrpr.ac.in
+Dr. Shubha Iyer,shubha.iyer@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Chemical Engineering,,,Dr.,shubha.iyer@iitrpr.ac.in
+Asst. Prof. Varun Mallick,varun.mallick@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Physics,,,Asst. Prof.,varun.mallick@iitrpr.ac.in
+Prof. Dinesh Kulkarni,dinesh.kulkarni@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.,dinesh.kulkarni@iitrpr.ac.in
+Dr. Preeti Sood,preeti.sood@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Mathematics,,,Dr.,preeti.sood@iitrpr.ac.in
+Asst. Prof. Rahul Nair,rahul.nair@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Asst. Prof.,rahul.nair@iitrpr.ac.in
+Prof. Suman Ghosh,suman.ghosh@iitrpr.ac.in,password123,INSTRUCTOR,,,,,EE,,,Prof.,suman.ghosh@iitrpr.ac.in
+Dr. Tarun Bhat,tarun.bhat@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Dr.,tarun.bhat@iitrpr.ac.in
+Dr. Isha Kapoor,isha.kapoor@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Chemical Engineering,,,Dr.,isha.kapoor@iitrpr.ac.in
+Asst. Prof. Karthik Subramanian,karthik.subramanian@iitrpr.ac.in,password123,INSTRUCTOR,,,,,Physics,,,Asst. Prof.,karthik.subramanian@iitrpr.ac.in
+Prof. Ramesh Narayan,ramesh.narayan@iitrpr.ac.in,password123,INSTRUCTOR,,,,,CSE,,,Prof.,ramesh.narayan@iitrpr.ac.in

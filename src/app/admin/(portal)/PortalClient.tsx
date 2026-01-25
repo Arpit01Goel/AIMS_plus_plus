@@ -22,22 +22,16 @@ import {
   Award,
   LogOut,
   Shield,
+  Building2,
 } from "lucide-react";
 
 const navTabs: NavTab[] = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
   { name: "User Management", icon: Users, href: "/admin/users" },
+  { name: "Departments", icon: Building2, href: "/admin/departments" },
+  { name: "Academic Sessions", icon: Calendar, href: "/admin/sessions" },
   { name: "Course Catalog", icon: BookOpen, href: "/admin/courses" },
   { name: "Course Offerings", icon: GraduationCap, href: "/admin/offerings" },
-  { name: "Enrollments", icon: ClipboardCheck, href: "/admin/enrollments" },
-  { name: "Grades & Transcripts", icon: FileText, href: "/admin/grades" },
-  { name: "Attendance", icon: ClipboardCheck, href: "/admin/attendance" },
-  { name: "Reports", icon: BarChart3, href: "/admin/reports" },
-  { name: "Academic Calendar", icon: Calendar, href: "/admin/calendar" },
-  { name: "Feedback System", icon: MessageSquare, href: "/admin/feedback" },
-  { name: "PhD Management", icon: Award, href: "/admin/phd" },
   { name: "Batch Advisors", icon: UserCog, href: "/admin/advisors" },
-  { name: "System Config", icon: Settings, href: "/admin/settings" },
 ];
 
 type NavTab = {
@@ -85,18 +79,16 @@ type SidebarProps = {
 function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
   return (
     <nav
-      className={`fixed left-0 top-0 bottom-0 z-50 h-full border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${
-        collapsed ? "w-20" : "w-64"
-      }`}
+      className={`fixed left-0 top-0 bottom-0 z-50 h-full border-r border-indigo-800 bg-gradient-to-b from-indigo-950 via-indigo-900 to-indigo-700 shadow-lg transition-all duration-300 ${collapsed ? "w-20" : "w-64"
+        }`}
     >
       <div className="flex h-20 items-center border-b border-white/30 px-4">
         <button
           onClick={onToggle}
-          className={`flex items-center gap-3 rounded-xl text-indigo-100 transition hover:bg-indigo-800 hover:text-white ${
-            collapsed
+          className={`flex items-center gap-3 rounded-xl text-indigo-100 transition hover:bg-indigo-800 hover:text-white ${collapsed
               ? "mx-auto h-12 w-12 justify-center"
               : "w-full justify-start px-4 py-3"
-          }`}
+            }`}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <Menu className="h-5 w-5 shrink-0" />
@@ -128,21 +120,18 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
             <li key={tab.name}>
               <Link
                 href={tab.href}
-                className={`group flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
-                  collapsed
+                className={`group flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${collapsed
                     ? "mx-auto h-12 w-12 justify-center"
                     : "w-full justify-start px-4 py-2.5"
-                } ${
-                  isActive
+                  } ${isActive
                     ? "bg-white text-indigo-900"
                     : "text-indigo-100 hover:bg-indigo-800 hover:text-white"
-                }`}
+                  }`}
                 title={collapsed ? tab.name : undefined}
               >
                 <Icon
-                  className={`h-5 w-5 shrink-0 ${
-                    isActive ? "text-indigo-700" : "text-indigo-200 group-hover:text-white"
-                  }`}
+                  className={`h-5 w-5 shrink-0 ${isActive ? "text-indigo-700" : "text-indigo-200 group-hover:text-white"
+                    }`}
                 />
                 {!collapsed && <span className="tracking-tight">{tab.name}</span>}
               </Link>
@@ -154,11 +143,10 @@ function Sidebar({ tabs, collapsed, onToggle, pathname }: SidebarProps) {
       <div className="absolute bottom-0 left-0 right-0 border-t border-white/30 bg-indigo-700 p-4">
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className={`group flex items-center justify-center gap-3 rounded-lg border border-indigo-400/30 text-sm font-medium text-indigo-100 transition-colors hover:border-red-400 hover:bg-red-600 hover:text-white ${
-            collapsed
+          className={`group flex items-center justify-center gap-3 rounded-lg border border-indigo-400/30 text-sm font-medium text-indigo-100 transition-colors hover:border-red-400 hover:bg-red-600 hover:text-white ${collapsed
               ? "mx-auto h-12 w-12"
               : "mx-auto px-4 py-2.5"
-          }`}
+            }`}
           title={collapsed ? "Sign Out" : undefined}
         >
           <LogOut className="h-5 w-5 shrink-0 text-indigo-200 group-hover:text-white" />

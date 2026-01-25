@@ -18,7 +18,6 @@ datasource db {
 enum Role {
   STUDENT
   INSTRUCTOR
-  ADVISOR
   ADMIN
 }
 
@@ -113,7 +112,6 @@ model User {
   // One-to-one profile relations (based on role)
   student    Student?
   instructor Instructor?
-  advisor    Advisor?
   admin      AdminProfile?
 
   // Auth-related
@@ -183,7 +181,7 @@ model Student {
   programId  String?
   department Department? @relation(fields: [departmentId], references: [id])
   departmentId String?
-  advisor    Advisor?    @relation("AdvisorStudents", fields: [advisorId], references: [id])
+  advisor    Instructor? @relation("InstructorAdvisingStudents", fields: [advisorId], references: [id])
   advisorId  String?
 
   // Academic data
@@ -291,6 +289,12 @@ model Instructor {
   userId        String   @unique
   title         String? // Prof., Dr., etc.
   officialEmail String?
+  
+  // Advisor-related fields (optional)
+  isAdvisor     Boolean  @default(false) // Whether this instructor serves as an advisor
+  primaryCohort Int? // Year/batch they primarily advise (if isAdvisor)
+  advisorNotes  String? // Notes specific to advisor role
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -301,29 +305,12 @@ model Instructor {
 
   // Courses taught
   courseOfferings CourseOffering[]
+  
+  // Students being advised (if isAdvisor)
+  advisees Student[] @relation("InstructorAdvisingStudents")
 
   @@index([userId])
-}
-
-model Advisor {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  primaryCohort Int? // Year/batch they primarily advise
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  department   Department? @relation(fields: [departmentId], references: [id])
-  departmentId String?
-  program      Program?    @relation(fields: [programId], references: [id])
-  programId    String?
-
-  // Students being advised
-  students Student[] @relation("AdvisorStudents")
-
-  @@index([userId])
+  @@index([isAdvisor])
 }
 
 model AdminProfile {
@@ -353,7 +340,6 @@ model Department {
   programs    Program[]
   students    Student[]
   instructors Instructor[]
-  advisors    Advisor[]
   courses     Course[]
 
   @@index([code])
@@ -372,7 +358,6 @@ model Program {
 
   // Relations
   students Student[]
-  advisors Advisor[]
 
   @@index([code])
 }
@@ -402,7 +387,8 @@ model Course {
   title     String
   credits   Int
   ltpsc     String? // e.g., "3-0-0-4" (Lecture-Tutorial-Practical-Self Study-Credits)
-  category  CourseCategory  
+  category  CourseCategory
+  degree    String? // e.g., B.Tech, M.Tech, PhD
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
 

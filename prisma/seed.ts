@@ -33,7 +33,6 @@ async function main() {
   await prisma.studentProfile.deleteMany();
   await prisma.student.deleteMany();
   await prisma.instructor.deleteMany();
-  await prisma.advisor.deleteMany();
   await prisma.adminProfile.deleteMany();
   await prisma.oTPCode.deleteMany();
   await prisma.user.deleteMany();
@@ -129,26 +128,29 @@ async function main() {
     },
   });
 
-  // Create Advisor User
+  // Create Advisor User (instructor with advisor role)
   console.log('🧑‍💼 Creating advisor user...');
   const advisorUser = await prisma.user.create({
     data: {
       email: 'advisor@iitrpr.ac.in',
       passwordHash: defaultPasswordHash,
       name: 'Prof. Priya Sharma',
-      role: Role.ADVISOR,
-      advisor: {
+      role: Role.INSTRUCTOR,
+      instructor: {
         create: {
+          title: 'Prof.',
+          officialEmail: 'priya.sharma@iitrpr.ac.in',
+          isAdvisor: true,
           primaryCohort: 2023,
+          advisorNotes: 'Primary advisor for CSE B.Tech 2023 batch',
           departmentId: cseDept.id,
-          programId: btechCSE.id,
         },
       },
     },
   });
 
   // Get advisor ID for student relation
-  const advisor = await prisma.advisor.findUnique({
+  const advisor = await prisma.instructor.findUnique({
     where: { userId: advisorUser.id },
   });
 

@@ -1,0 +1,5 @@
+email,isAdvisor,primaryCohort,advisorNotes
+fina.das@iitrpr.ac.in,true,2023,Senior advisor for CS department
+manoj.singh@iitrpr.ac.in,true,2022,Handles PhD student advising
+pooja.malhotra@iitrpr.ac.in,false,,
+anil.gupta@iitrpr.ac.in,true,2024,New advisor for ME students
