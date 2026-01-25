@@ -23,6 +23,7 @@ import {
   LogOut,
   Shield,
   Building2,
+  Clock,
 } from "lucide-react";
 
 const navTabs: NavTab[] = [
@@ -31,6 +32,7 @@ const navTabs: NavTab[] = [
   { name: "Academic Sessions", icon: Calendar, href: "/admin/sessions" },
   { name: "Course Catalog", icon: BookOpen, href: "/admin/courses" },
   { name: "Course Offerings", icon: GraduationCap, href: "/admin/offerings" },
+  { name: "Scheduling", icon: Clock, href: "/admin/schedule" },
   { name: "Batch Advisors", icon: UserCog, href: "/admin/advisors" },
 ];
 
