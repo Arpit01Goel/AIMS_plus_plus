@@ -19,9 +19,9 @@ export default async function StudentPortalLayout({
   if (session.user.role !== "STUDENT") {
     // Redirect to appropriate portal based on their actual role
     const rolePortals: Record<string, string> = {
-      INSTRUCTOR: "/instructor/dashboard",
-      ADVISOR: "/advisor/dashboard",
-      ADMIN: "/admin/dashboard",
+      INSTRUCTOR: "/instructor",
+      ADVISOR: "/advisor",
+      ADMIN: "/admin",
     };
     
     const targetPortal = rolePortals[session.user.role];

@@ -19,15 +19,20 @@ interface CourseFormData {
   selfStudyHours: string;
   credits: string;
   instructors: string[];
-  creditingRows: CreditingRow[];
+  allowedBatches: string[];
+  allowedProgramCode: string[];
 }
 
-interface CreditingRow {
+interface Program {
   id: string;
-  degree: string;
-  department: string;
-  category: string;
-  entryYears: string;
+  code: string;
+  name: string;
+  level: string | null;
+  department: {
+    id: string;
+    code: string;
+    name: string;
+  } | null;
 }
 
 interface InstructorOption {
@@ -75,9 +80,11 @@ export default function CreateCoursePage() {
     selfStudyHours: '6',
     credits: '3',
     instructors: [],
-    creditingRows: [],
+    allowedBatches: [],
+    allowedProgramCode: [],
   });
 
+  const [batchInput, setBatchInput] = useState('');
   const [instructorSearch, setInstructorSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,6 +92,8 @@ export default function CreateCoursePage() {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [departments, setDepartments] = useState<{ id: string; code: string; name: string; }[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [availableInstructors, setAvailableInstructors] = useState<InstructorOption[]>([]);
   const [loadingInstructors, setLoadingInstructors] = useState(true);
   const [currentInstructorName, setCurrentInstructorName] = useState<string>('');
@@ -117,6 +126,14 @@ export default function CreateCoursePage() {
         }
         setLoadingDepartments(false);
 
+        // Load programs
+        const progRes = await fetch('/api/programs');
+        const progJson = await progRes.json();
+        if (progRes.ok) {
+          setPrograms(progJson || []);
+        }
+        setLoadingPrograms(false);
+
         // Load current instructor profile
         setLoadingProfile(true);
         const profileRes = await fetch('/api/profile');
@@ -137,6 +154,7 @@ export default function CreateCoursePage() {
         console.error('Failed to load data:', err);
         setLoadingCategories(false);
         setLoadingDepartments(false);
+        setLoadingPrograms(false);
         setLoadingProfile(false);
         setLoadingInstructors(false);
       }
@@ -252,39 +270,21 @@ export default function CreateCoursePage() {
     }));
   };
 
-  // Add crediting row
-  const handleAddCreditingRow = () => {
-    setFormData(prev => ({
-      ...prev,
-      creditingRows: [
-        ...prev.creditingRows,
-        {
-          id: Math.random().toString(36).substr(2, 9),
-          degree: 'B.Tech',
-          department: '',
-          category: '',
-          entryYears: '',
-        },
-      ],
-    }));
+  // Add/remove program code
+  const handleAddProgramCode = (programCode: string) => {
+    if (!formData.allowedProgramCode.includes(programCode)) {
+      setFormData({
+        ...formData,
+        allowedProgramCode: [...formData.allowedProgramCode, programCode],
+      });
+    }
   };
 
-  // Remove crediting row
-  const handleRemoveCreditingRow = (id: string) => {
-    setFormData(prev => ({
-      ...prev,
-      creditingRows: prev.creditingRows.filter(row => row.id !== id),
-    }));
-  };
-
-  // Update crediting row
-  const handleUpdateCreditingRow = (id: string, field: keyof CreditingRow, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      creditingRows: prev.creditingRows.map(row =>
-        row.id === id ? { ...row, [field]: value } : row
-      ),
-    }));
+  const handleRemoveProgramCode = (programCode: string) => {
+    setFormData({
+      ...formData,
+      allowedProgramCode: formData.allowedProgramCode.filter((p) => p !== programCode),
+    });
   };
 
   const filteredInstructors = availableInstructors.filter(
@@ -351,6 +351,8 @@ export default function CreateCoursePage() {
         sessionCode: formData.session,
         slot: formData.slot,
         capacity: 60, // Default capacity
+        allowedBatches: formData.allowedBatches,
+        allowedProgramCode: formData.allowedProgramCode,
       };
 
       // If using existing course, send courseId, otherwise send course details
@@ -501,21 +503,6 @@ export default function CreateCoursePage() {
               )}
             </div>
 
-            {/* Divider */}
-            <div className="mt-8 flex items-center gap-4">
-              <div className="h-px flex-1 bg-slate-200"></div>
-              <span className="text-sm font-medium text-slate-500">OR</span>
-              <div className="h-px flex-1 bg-slate-200"></div>
-            </div>
-
-            {/* Create New Course Button */}
-            <button
-              type="button"
-              onClick={() => setCreatingNewCourse(true)}
-              className="mt-6 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700"
-            >
-              + Create a New Course Instead
-            </button>
           </div>
         </div>
       )}
@@ -849,139 +836,146 @@ export default function CreateCoursePage() {
           )}
         </div>
 
-        {/* Crediting Categorization */}
+
+        {/* Enrollment Restrictions */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Crediting Categorization</h2>
-              <p className="mt-1 text-sm text-slate-600">
-                Specify which degree, department, and entry years can take this course for credit
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleAddCreditingRow}
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
-            >
-              <Plus className="h-4 w-4" />
-              Add
-            </button>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Enrollment Restrictions</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Specify which program codes and batch years can enroll in this course
+            </p>
           </div>
 
-          {formData.creditingRows.length > 0 && (
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b-2 border-slate-200 bg-slate-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
-                      #
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
-                      Degree
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
-                      Department
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
-                      Category
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
-                      For Entry Years
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-700">
-                      Delete
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {formData.creditingRows.map((row, index) => (
-                    <tr key={row.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm text-slate-700">{index + 1}</td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={row.degree}
-                          onChange={(e) => handleUpdateCreditingRow(row.id, 'degree', e.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        >
-                          <option value="B.Tech">B.Tech</option>
-                          <option value="M.Tech">M.Tech</option>
-                          <option value="PhD">PhD</option>
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={row.department}
-                          onChange={(e) => handleUpdateCreditingRow(row.id, 'department', e.target.value)}
-                          disabled={loadingDepartments}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-                        >
-                          {loadingDepartments ? (
-                            <option>Loading...</option>
-                          ) : (
-                            <>
-                              <option value="">Select Department</option>
-                              {departments.map((dept) => (
-                                <option key={dept.id} value={dept.name}>
-                                  {dept.code} - {dept.name}
-                                </option>
-                              ))}
-                            </>
-                          )}
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={row.category}
-                          onChange={(e) => handleUpdateCreditingRow(row.id, 'category', e.target.value)}
-                          disabled={loadingCategories}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-                        >
-                          {loadingCategories ? (
-                            <option>Loading...</option>
-                          ) : (
-                            <>
-                              <option value="">Select Category</option>
-                              {categories.map((cat) => (
-                                <option key={cat.value} value={cat.value}>
-                                  {cat.label}
-                                </option>
-                              ))}
-                            </>
-                          )}
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        <input
-                          type="text"
-                          placeholder="e.g., 2019,2020"
-                          value={row.entryYears}
-                          onChange={(e) => handleUpdateCreditingRow(row.id, 'entryYears', e.target.value)}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCreditingRow(row.id)}
-                          className="rounded-lg p-2 text-red-600 hover:bg-red-50"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {/* Program Codes */}
+          <div className="mt-6">
+            <label className="block text-sm font-semibold text-slate-700">
+              Allowed Program Codes
+            </label>
+            <p className="mt-1 text-xs text-slate-500">
+              Select programs that are allowed to enroll (leave empty to allow all)
+            </p>
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleAddProgramCode(e.target.value);
+                  e.target.value = '';
+                }
+              }}
+              disabled={loadingPrograms}
+              className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            >
+              <option value="">{loadingPrograms ? 'Loading programs...' : 'Select a program code to add'}</option>
+              {programs
+                .filter((prog) => !formData.allowedProgramCode.includes(prog.code))
+                .map((prog) => (
+                  <option key={prog.id} value={prog.code}>
+                    {prog.code} - {prog.name}
+                  </option>
+                ))}
+            </select>
 
-          {formData.creditingRows.length === 0 && (
-            <div className="mt-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-              <p className="text-sm text-slate-600">
-                No crediting rules added yet. Click "Add" to define which students can take this course.
-              </p>
+            {/* Selected Program Codes */}
+            {formData.allowedProgramCode.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {formData.allowedProgramCode.map((programCode) => {
+                  const program = programs.find((p) => p.code === programCode);
+                  return (
+                    <div
+                      key={programCode}
+                      className="flex items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2"
+                    >
+                      <span className="text-sm font-medium text-indigo-900">
+                        {programCode}
+                        {program && (
+                          <span className="ml-1 text-xs text-indigo-600">
+                            ({program.name})
+                          </span>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveProgramCode(programCode)}
+                        className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {formData.allowedProgramCode.length === 0 && (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-center">
+                <p className="text-xs text-slate-600">
+                  No program restrictions. All programs can enroll.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Batch Years */}
+          <div className="mt-6">
+            <label className="block text-sm font-semibold text-slate-700">
+              Allowed Batch Years
+            </label>
+            <p className="mt-1 text-xs text-slate-500">
+              Specify batch years that can enroll (leave empty to allow all)
+            </p>
+            <div className="mt-2 flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g., 2023"
+                value={batchInput}
+                onChange={(e) => setBatchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddBatch();
+                  }
+                }}
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              />
+              <button
+                type="button"
+                onClick={handleAddBatch}
+                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </button>
             </div>
-          )}
+
+            {/* Selected Batches */}
+            {formData.allowedBatches.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {formData.allowedBatches.map((batch) => (
+                  <div
+                    key={batch}
+                    className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2"
+                  >
+                    <span className="text-sm font-medium text-green-900">{batch}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBatch(batch)}
+                      className="rounded p-1 text-green-600 hover:bg-green-100"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {formData.allowedBatches.length === 0 && (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-center">
+                <p className="text-xs text-slate-600">
+                  No batch restrictions. All batches can enroll.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Submit Buttons */}

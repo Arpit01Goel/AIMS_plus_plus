@@ -42,7 +42,7 @@ export default function EnrollmentApprovalsPage() {
   const fetchEnrollments = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/advisor/approvals');
+      const response = await fetch('/api/instructor/advisor/approvals');
       if (!response.ok) {
         throw new Error('Failed to fetch enrollments');
       }
@@ -76,7 +76,7 @@ export default function EnrollmentApprovalsPage() {
 
     try {
       setProcessing(requestId);
-      const response = await fetch(`/api/advisor/approvals/${requestId}`, {
+      const response = await fetch(`/api/instructor/advisor/approvals/${requestId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
@@ -111,7 +111,7 @@ export default function EnrollmentApprovalsPage() {
 
     try {
       setProcessing(selectedRequest.id);
-      const response = await fetch(`/api/advisor/approvals/${selectedRequest.id}`, {
+      const response = await fetch(`/api/instructor/advisor/approvals/${selectedRequest.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reject', remarks }),
@@ -306,7 +306,7 @@ export default function EnrollmentApprovalsPage() {
                     <span>Instructor: {request.instructorName}</span>
                   </div>
 
-                  <div className="mt-3 rounded-lg bg-white p-3 text-xs">
+                  {/* <div className="mt-3 rounded-lg bg-white p-3 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-slate-700">Credit Analysis:</span>
                       {getCreditStatus(request.currentCredits, request.credits)}
@@ -315,7 +315,7 @@ export default function EnrollmentApprovalsPage() {
                       Current: {request.currentCredits} + New: {request.credits} ={' '}
                       {request.currentCredits + request.credits} / {MAX_CREDITS} (Max)
                     </p>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="flex shrink-0 flex-col gap-2">

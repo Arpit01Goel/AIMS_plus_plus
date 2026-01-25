@@ -35,24 +35,37 @@ export default async function InstructorWelcomePage() {
           <ul className="space-y-2 text-sm text-slate-600 text-left">
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Courses</strong> – Manage your course offerings</span>
+              <span><strong className="text-slate-900">My Courses</strong> – View your assigned courses</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Attendance</strong> – Mark and view student attendance</span>
+              <span><strong className="text-slate-900">Create Course</strong> – Request to create a new course</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Grades</strong> – Submit and manage student grades</span>
+              <span><strong className="text-slate-900">Grades</strong> – Manage student grades</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Schedule</strong> – View your teaching schedule</span>
+              <span><strong className="text-slate-900">Pending Actions</strong> – View pending approvals and tasks</span>
             </li>
-            <li className="flex items-start gap-2">
-              <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Profile</strong> – Update your information</span>
-            </li>
+            
+            {/* Advisor Section - Only show if user is an advisor */}
+            {session?.user?.isAdvisor && (
+              <>
+                <li className="flex items-start gap-2 mt-4 text-xs font-semibold uppercase tracking-wider text-indigo-800">
+                  Advisor
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-indigo-600 mt-0.5">•</span>
+                  <span><strong className="text-slate-900">My Students</strong> – View advised students</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-indigo-600 mt-0.5">•</span>
+                  <span><strong className="text-slate-900">Approvals</strong> – Manage student approvals</span>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>

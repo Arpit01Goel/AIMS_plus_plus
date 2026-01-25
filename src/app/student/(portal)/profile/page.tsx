@@ -49,7 +49,7 @@ export default function ProfilePage() {
   
   // Password form state
   const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
+    // currentPassword: '',
     newPassword: '',
     confirmPassword: '',
     otp: ''
@@ -269,7 +269,7 @@ export default function ProfilePage() {
       alert('Password changed successfully!');
       setShowPasswordModal(false);
       // Reset all state
-      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+      setPasswordForm({ newPassword: '', confirmPassword: '', otp: '' });
       setOtpSent(false);
       setOtpVerified(false);
       setResetToken(null);
@@ -570,7 +570,7 @@ export default function ProfilePage() {
                   setShowPasswordModal(false);
                   setPasswordError(null);
                   setPasswordSuccess(null);
-                  setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+                  setPasswordForm({ newPassword: '', confirmPassword: '', otp: '' });
                   setOtpSent(false);
                   setOtpVerified(false);
                   setResetToken(null);
@@ -768,7 +768,7 @@ export default function ProfilePage() {
                       setShowPasswordModal(false);
                       setPasswordError(null);
                       setPasswordSuccess(null);
-                      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+                      setPasswordForm({ newPassword: '', confirmPassword: '', otp: '' });
                       setOtpSent(false);
                       setOtpVerified(false);
                       setResetToken(null);

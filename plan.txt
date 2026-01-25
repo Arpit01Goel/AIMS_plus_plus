@@ -188,7 +188,7 @@ Even if the UI is not ready, define namespaced APIs and minimum queries so futur
 	- /api/instructor/courses/[offeringId]/students: list enrolled students with basic info and grades/attendance.
 - /api/advisor/* (role === 'ADVISOR')
 	- /api/advisor/advisees: list students assigned to the advisor.
-	- /api/advisor/approvals: list pending CourseApprovalRequests if modeled.
+	- /api/instructor/advisor/approvals: list pending CourseApprovalRequests if modeled.
 - /api/admin/* (role === 'ADMIN')
 	- /api/admin/users: basic user listing and role management (initially read-only).
 	- /api/admin/academics: simple endpoints to list/create Departments, Programs, Courses, and AcademicSessions.

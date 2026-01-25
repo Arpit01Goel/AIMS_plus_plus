@@ -35,6 +35,58 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Fetch the offering with constraints
+      const offering = await prisma.courseOffering.findUnique({
+        where: { id: offeringId },
+        include: {
+          course: true,
+        },
+      });
+
+      if (!offering) {
+        return NextResponse.json(
+          { error: 'Course offering not found' },
+          { status: 404 }
+        );
+      }
+
+      // Fetch student with program information
+      const student = await prisma.student.findUnique({
+        where: { id: user.student.id },
+        include: {
+          program: true,
+        },
+      });
+
+      if (!student) {
+        return NextResponse.json(
+          { error: 'Student profile not found' },
+          { status: 404 }
+        );
+      }
+
+      // Validate allowedBatches constraint
+      if (offering.allowedBatches && offering.allowedBatches.length > 0) {
+        const studentBatch = student.batch?.toString();
+        if (!studentBatch || !offering.allowedBatches.includes(studentBatch)) {
+          return NextResponse.json(
+            { error: 'Your batch is not allowed to enroll in this course' },
+            { status: 403 }
+          );
+        }
+      }
+
+      // Validate allowedProgramCode constraint
+      if (offering.allowedProgramCodes && offering.allowedProgramCodes.length > 0) {
+        const studentProgramCode = student.program?.code;
+        if (!studentProgramCode || !offering.allowedProgramCodes.includes(studentProgramCode)) {
+          return NextResponse.json(
+            { error: 'Your program is not allowed to enroll in this course' },
+            { status: 403 }
+          );
+        }
+      }
+
       // Check if already enrolled
       const existing = await prisma.enrollment.findUnique({
         where: {

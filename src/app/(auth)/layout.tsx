@@ -14,9 +14,9 @@ export default async function AuthLayout({
   if (session) {
     const rolePortals: Record<string, string> = {
       STUDENT: "/student",
-      INSTRUCTOR: "/instructor/dashboard",
-      ADVISOR: "/advisor/dashboard",
-      ADMIN: "/admin/dashboard",
+      INSTRUCTOR: "/instructor",
+      ADVISOR: "/advisor",
+      ADMIN: "/admin",
     };
 
     const targetPortal = rolePortals[session.user.role];

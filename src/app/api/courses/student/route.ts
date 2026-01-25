@@ -75,15 +75,36 @@ export async function GET() {
             },
         });
 
+        // Filter offerings based on student's batch and program code
+        const studentBatch = student.batch?.toString();
+        const studentProgramCode = student.program?.code;
+
+        const filteredOfferings = offerings.filter((offering) => {
+            // Check batch restriction
+            const batchAllowed =
+                !offering.allowedBatches ||
+                offering.allowedBatches.length === 0 ||
+                (studentBatch && offering.allowedBatches.includes(studentBatch));
+
+            // Check program code restriction
+            const programAllowed =
+                !offering.allowedProgramCodes ||
+                offering.allowedProgramCodes.length === 0 ||
+                (studentProgramCode && offering.allowedProgramCodes.includes(studentProgramCode));
+
+            // Only include if both restrictions are satisfied
+            return batchAllowed && programAllowed;
+        });
+
         // Create a map of enrolled offering IDs for quick lookup
         const enrolledOfferingIds = new Set(
-            offerings
+            filteredOfferings
                 .filter((o) => o.enrollments.length > 0)
                 .map((o) => o.id)
         );
 
         // Format courses for frontend
-        const courses = offerings.map((offering) => {
+        const courses = filteredOfferings.map((offering) => {
             const enrollment = offering.enrollments[0]; // Student's enrollment if exists
 
             return {

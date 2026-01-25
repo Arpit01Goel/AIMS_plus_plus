@@ -13,9 +13,9 @@ export default async function HomePage() {
     case "STUDENT":
       redirect("/student")
     case "INSTRUCTOR":
-      redirect("/instructor/dashboard")
+      redirect("/instructor")
     case "ADMIN":
-      redirect("/admin/dashboard")
+      redirect("/admin")
     default:
       redirect("/login")
   }

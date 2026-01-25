@@ -5,7 +5,7 @@ Complete backend implementation for the advisor portal with database integration
 
 ## API Routes Created
 
-### 1. `/api/advisor/students` (GET)
+### 1. `/api/instructor/advisor/students` (GET)
 **Purpose**: Fetch all students assigned to the logged-in advisor
 
 **Features**:
@@ -35,7 +35,7 @@ Complete backend implementation for the advisor portal with database integration
 }
 ```
 
-### 2. `/api/advisor/approvals` (GET)
+### 2. `/api/instructor/advisor/approvals` (GET)
 **Purpose**: Get all pending enrollment requests requiring advisor approval
 
 **Features**:
@@ -70,7 +70,7 @@ Complete backend implementation for the advisor portal with database integration
 }
 ```
 
-### 3. `/api/advisor/approvals/[id]` (POST)
+### 3. `/api/instructor/advisor/approvals/[id]` (POST)
 **Purpose**: Approve or reject a specific enrollment request
 
 **Request Body**:
@@ -143,7 +143,7 @@ Complete backend implementation for the advisor portal with database integration
 ### 1. `/advisor/approvals/page.tsx`
 **Changes**:
 - Removed hardcoded data
-- Added `useEffect` to fetch data from `/api/advisor/approvals`
+- Added `useEffect` to fetch data from `/api/instructor/advisor/approvals`
 - Added loading and error states
 - Updated approve/reject handlers to call API
 - Added real-time credit limit validation display
@@ -160,7 +160,7 @@ Complete backend implementation for the advisor portal with database integration
 ### 2. `/advisor/students/page.tsx`
 **Changes**:
 - Removed hardcoded student data
-- Fetches from `/api/advisor/students`
+- Fetches from `/api/instructor/advisor/students`
 - Added loading and error states
 - Dynamic status calculation based on CGPA
   - Active: CGPA >= 7.0

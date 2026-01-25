@@ -71,7 +71,7 @@ export default function StudentMonitoringPage() {
   const fetchStudents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/advisor/students');
+      const response = await fetch('/api/instructor/advisor/students');
       if (!response.ok) throw new Error('Failed to fetch students');
       const data = await response.json();
       setStudents(data.students);

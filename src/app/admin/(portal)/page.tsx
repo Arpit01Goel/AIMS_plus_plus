@@ -35,15 +35,7 @@ export default async function AdminWelcomePage() {
           <ul className="space-y-2 text-sm text-slate-600 text-left">
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Users</strong> – Manage system users and roles</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Courses</strong> – Manage course catalog</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Offerings</strong> – Manage semester course offerings</span>
+              <span><strong className="text-slate-900">User Management</strong> – Manage system users and roles</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
@@ -51,7 +43,23 @@ export default async function AdminWelcomePage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-indigo-600 mt-0.5">•</span>
-              <span><strong className="text-slate-900">Settings</strong> – System configuration</span>
+              <span><strong className="text-slate-900">Academic Sessions</strong> – Manage semester sessions</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-600 mt-0.5">•</span>
+              <span><strong className="text-slate-900">Course Catalog</strong> – Manage course catalog</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-600 mt-0.5">•</span>
+              <span><strong className="text-slate-900">Course Offerings</strong> – Manage semester course offerings</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-600 mt-0.5">•</span>
+              <span><strong className="text-slate-900">Scheduling</strong> – Manage weekly schedules and meetings</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-indigo-600 mt-0.5">•</span>
+              <span><strong className="text-slate-900">Batch Advisors</strong> – Assign and allow advisors</span>
             </li>
           </ul>
         </div>

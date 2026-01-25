@@ -53,7 +53,6 @@ export default function AddStudentPage() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        password: '',
         entryNumber: '',
         batch: '',
         phone: '',
@@ -133,12 +132,15 @@ export default function AddStudentPage() {
         setSuccess('');
 
         try {
+            // Generate random 8-digit password
+            const randomPassword = Math.random().toString(36).slice(2, 10);
+
             const response = await fetch('/api/admin/students', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ ...formData, password: randomPassword }),
             });
 
             const data = await response.json();
@@ -260,21 +262,7 @@ export default function AddStudentPage() {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-slate-700">
-                                    Initial Password <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                    minLength={8}
-                                    className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    placeholder="Minimum 8 characters"
-                                />
-                            </div>
+
 
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700">
