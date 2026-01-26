@@ -406,27 +406,27 @@ export default function GradesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-8 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
           Grade Management
         </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
           Upload & Manage Grades
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-slate-600">
+        <p className="mt-2 md:mt-3 text-sm leading-relaxed text-slate-600">
           Upload grades via CSV or manually enter grades for your enrolled
           students
         </p>
 
         {/* Course Selector */}
-        <div className="mt-6">
+        <div className="mt-4 md:mt-6">
           <label className="block text-sm font-semibold text-slate-700">
             Select Course
           </label>
           {loading ? (
-            <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 md:w-96">
+            <div className="mt-2 flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 w-full md:w-96">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600"></div>
               <span className="text-sm text-slate-600">Loading courses...</span>
             </div>
@@ -447,9 +447,9 @@ export default function GradesPage() {
         </div>
 
         {selectedCourse && (
-          <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-2">
+          <div className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 md:p-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-xl md:text-2xl font-bold text-blue-600">
                 {statusStats.submitted}
               </p>
               <p className="mt-1 text-xs font-medium text-slate-600">
@@ -457,7 +457,7 @@ export default function GradesPage() {
               </p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-xl md:text-2xl font-bold text-orange-600">
                 {statusStats.pending}
               </p>
               <p className="mt-1 text-xs font-medium text-slate-600">Pending</p>
@@ -469,26 +469,26 @@ export default function GradesPage() {
       {selectedCourse && (
         <>
           {/* Upload Section */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Upload Grades</h2>
+          <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+            <h2 className="text-base md:text-lg font-bold text-slate-900">Upload Grades</h2>
             <p className="mt-2 text-sm text-slate-600">
               Upload grades in CSV format. Download the template to get started.
             </p>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-4 md:mt-6 grid gap-3 md:gap-4 md:grid-cols-2">
               {/* Download Template */}
               <button
                 onClick={handleDownloadTemplate}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-4 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 md:px-6 py-3 md:py-4 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:bg-indigo-50 hover:text-indigo-700"
               >
-                <Download className="h-5 w-5" />
-                Download Grade Template
+                <Download className="h-5 w-5 flex-shrink-0" />
+                <span className="text-xs md:text-sm">Download Grade Template</span>
               </button>
 
               {/* Upload CSV */}
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50 px-6 py-4 text-sm font-semibold text-indigo-700 transition hover:border-indigo-400 hover:bg-indigo-100">
-                <Upload className="h-5 w-5" />
-                {uploadProcessing ? "Processing..." : "Upload Grades CSV"}
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50 px-4 md:px-6 py-3 md:py-4 text-sm font-semibold text-indigo-700 transition hover:border-indigo-400 hover:bg-indigo-100">
+                <Upload className="h-5 w-5 flex-shrink-0" />
+                <span className="text-xs md:text-sm">{uploadProcessing ? "Processing..." : "Upload Grades CSV"}</span>
                 <input
                   type="file"
                   accept=".csv"
@@ -534,38 +534,38 @@ export default function GradesPage() {
           </div>
 
           {/* Student Grades List */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">
+          <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-base md:text-lg font-bold text-slate-900">
                 Student Grades
               </h2>
               <button
                 onClick={handleDownloadGrades}
-                className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                className="flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs md:text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
-                <Download className="h-4 w-4" />
-                Download Grades
+                <Download className="h-4 w-4 flex-shrink-0" />
+                <span>Download Grades</span>
               </button>
             </div>
 
             {/* Search and Filters */}
-            <div className="mt-4 flex flex-col gap-4 sm:flex-row">
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 md:h-5 md:w-5 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search by roll number or name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 md:pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-slate-400" />
+                <Filter className="h-4 w-4 md:h-5 md:w-5 text-slate-400 flex-shrink-0" />
                 <select
                   value={gradeFilter}
                   onChange={(e) => setGradeFilter(e.target.value)}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-3 md:px-4 py-2.5 text-xs md:text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option value="all">All Status</option>
                   <option value="submitted">Submitted</option>
@@ -574,8 +574,8 @@ export default function GradesPage() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="mt-6 overflow-x-auto">
+            {/* Table - Desktop and Mobile Views */}
+            <div className="mt-4 md:mt-6">
               {loadingStudents ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-indigo-600"></div>
@@ -584,81 +584,160 @@ export default function GradesPage() {
                   </p>
                 </div>
               ) : (
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        S#
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        Roll No.
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        Name
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        Grade
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        Status
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredStudents.map((student, idx) => (
-                      <tr
-                        key={student.id}
-                        className="border-b border-slate-100 hover:bg-slate-50"
-                      >
-                        <td className="px-4 py-3 text-sm text-slate-600">
-                          {idx + 1}
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                          {student.rollNo}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-700">
-                          {student.name}
-                        </td>
-                        <td className="px-4 py-3">
-                          <select
-                            value={student.grade}
-                            onChange={(e) =>
-                              handleGradeChange(student.id, e.target.value)
-                            }
-                            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                          >
-                            <option value="">-- Select --</option>
-                            {gradeOptions.map((grade) => (
-                              <option key={grade.value} value={grade.value}>
-                                {grade.label}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td className="px-4 py-3">
-                          {getStatusBadge(student.status)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
+                <>
+                  {/* Mobile Card View */}
+                  <div className="block md:hidden space-y-3">
+                    {filteredStudents.length === 0 ? (
+                      <div className="text-center py-8 text-sm text-slate-500">
+                        No students found
+                      </div>
+                    ) : (
+                      filteredStudents.map((student, idx) => (
+                        <div
+                          key={student.id}
+                          className="border border-slate-200 rounded-lg p-4 space-y-3 bg-white"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-slate-500">
+                                  #{idx + 1}
+                                </span>
+                                <span className="text-sm font-bold text-slate-900">
+                                  {student.rollNo}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-sm text-slate-700">
+                                {student.name}
+                              </p>
+                            </div>
+                            {getStatusBadge(student.status)}
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="block text-xs font-semibold text-slate-600">
+                              Grade
+                            </label>
+                            <select
+                              value={student.grade}
+                              onChange={(e) =>
+                                handleGradeChange(student.id, e.target.value)
+                              }
+                              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                            >
+                              <option value="">-- Select Grade --</option>
+                              {gradeOptions.map((grade) => (
+                                <option key={grade.value} value={grade.value}>
+                                  {grade.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
                           <button
                             onClick={() => handleUpdateGrade(student.id)}
                             disabled={
                               updatingStudents.has(student.id) ||
                               student.grade === originalGrades.get(student.id)
                             }
-                            className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {updatingStudents.has(student.id)
                               ? "Updating..."
-                              : "Update"}
+                              : "Update Grade"}
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-200 bg-slate-50">
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            S#
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            Roll No.
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            Name
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            Grade
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            Status
+                          </th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-slate-600">
+                            Action
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredStudents.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-500">
+                              No students found
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredStudents.map((student, idx) => (
+                            <tr
+                              key={student.id}
+                              className="border-b border-slate-100 hover:bg-slate-50"
+                            >
+                              <td className="px-4 py-3 text-sm text-slate-600">
+                                {idx + 1}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                                {student.rollNo}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-slate-700">
+                                {student.name}
+                              </td>
+                              <td className="px-4 py-3">
+                                <select
+                                  value={student.grade}
+                                  onChange={(e) =>
+                                    handleGradeChange(student.id, e.target.value)
+                                  }
+                                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                >
+                                  <option value="">-- Select --</option>
+                                  {gradeOptions.map((grade) => (
+                                    <option key={grade.value} value={grade.value}>
+                                      {grade.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </td>
+                              <td className="px-4 py-3">
+                                {getStatusBadge(student.status)}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <button
+                                  onClick={() => handleUpdateGrade(student.id)}
+                                  disabled={
+                                    updatingStudents.has(student.id) ||
+                                    student.grade === originalGrades.get(student.id)
+                                  }
+                                  className="rounded-lg bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {updatingStudents.has(student.id)
+                                    ? "Updating..."
+                                    : "Update"}
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -666,9 +745,9 @@ export default function GradesPage() {
       )}
 
       {!selectedCourse && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-          <FileText className="mx-auto h-16 w-16 text-slate-300" />
-          <h3 className="mt-4 text-lg font-semibold text-slate-900">
+        <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-8 md:p-12 text-center shadow-sm">
+          <FileText className="mx-auto h-12 w-12 md:h-16 md:w-16 text-slate-300" />
+          <h3 className="mt-4 text-base md:text-lg font-semibold text-slate-900">
             No Course Selected
           </h3>
           <p className="mt-2 text-sm text-slate-600">

@@ -1248,20 +1248,20 @@ Prof. Amit Sharma,instructor2@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.
       )}
 
       {/* Header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="flex items-start justify-between">
+      <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-8 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
               User Management
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
               Manage System Users
             </h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            <p className="mt-2 md:mt-3 text-sm leading-relaxed text-slate-600">
               Create, edit, and manage user accounts across all roles
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
             {/* Pending Requests Button */}
             {signupRequests.length > 0 && (
               <button
@@ -1314,9 +1314,9 @@ Prof. Amit Sharma,instructor2@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.
         </div>
 
         {/* Stats */}
-        <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-5">
+        <div className="mt-4 md:mt-6 grid grid-cols-2 gap-3 md:gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 md:p-4 sm:grid-cols-5">
           <div className="text-center">
-            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900">{stats.total}</p>
             <p className="mt-1 text-xs font-medium text-slate-600">
               Total Users
             </p>
@@ -1347,39 +1347,41 @@ Prof. Amit Sharma,instructor2@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.
       </div>
 
       {/* Search and Filters */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">Search Users</h2>
+      <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+        <h2 className="text-base md:text-lg font-bold text-slate-900">Search Users</h2>
 
-        <div className="mt-4 flex flex-col gap-4 sm:flex-row">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 md:h-5 md:w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search by name, email, or entry number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-9 md:pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-slate-400" />
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-            >
-              <option value="all">All Roles</option>
-              <option value="STUDENT">Students</option>
-              <option value="INSTRUCTOR">Instructors</option>
-              <option value="ADVISOR">Advisors</option>
-              <option value="ADMIN">Admins</option>
-            </select>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 md:h-5 md:w-5 text-slate-400 flex-shrink-0" />
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="flex-1 sm:flex-none rounded-xl border border-slate-300 bg-white px-3 md:px-4 py-2.5 text-xs md:text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              >
+                <option value="all">All Roles</option>
+                <option value="STUDENT">Students</option>
+                <option value="INSTRUCTOR">Instructors</option>
+                <option value="ADVISOR">Advisors</option>
+                <option value="ADMIN">Admins</option>
+              </select>
+            </div>
 
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-3 md:px-4 py-2.5 text-xs md:text-sm font-medium text-slate-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             >
               <option value="all">All Departments</option>
               {departments.map((dept) => (
@@ -1391,68 +1393,116 @@ Prof. Amit Sharma,instructor2@iitrpr.ac.in,password123,INSTRUCTOR,,,,,ME,,,Prof.
           </div>
         </div>
 
-        {/* User Table */}
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Role
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  ID/Entry Number
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
-                  Department
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr
+        {/* User Table - Desktop and Mobile Views */}
+        <div className="mt-4 md:mt-6">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {filteredUsers.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-sm text-slate-600">
+                  No users found matching your filters.
+                </p>
+              </div>
+            ) : (
+              filteredUsers.map((user) => (
+                <div
                   key={user.id}
-                  className="border-b border-slate-100 hover:bg-slate-50"
+                  className="border border-slate-200 rounded-lg p-4 space-y-3 bg-white"
                 >
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                    {user.name || "N/A"}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-600">
-                    {user.email}
-                  </td>
-                  <td className="px-4 py-3">{getRoleBadge(user.role)}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-slate-900">
-                    {user.student?.entryNumber ||
-                      user.instructor?.id.slice(0, 8) ||
-                      "N/A"}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-slate-600">
-                    {user.student?.department?.code ||
-                      user.instructor?.department?.code ||
-                      "N/A"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-slate-900">
+                        {user.name || "N/A"}
+                      </h3>
+                      <p className="mt-1 text-xs text-slate-600">{user.email}</p>
+                    </div>
+                    {getRoleBadge(user.role)}
+                  </div>
 
-        {filteredUsers.length === 0 && (
-          <div className="py-12 text-center">
-            <p className="text-sm text-slate-600">
-              No users found matching your filters.
-            </p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="font-semibold text-slate-700">ID/Entry Number</p>
+                      <p className="mt-1 text-slate-600">
+                        {user.student?.entryNumber ||
+                          user.instructor?.id.slice(0, 8) ||
+                          "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-700">Department</p>
+                      <p className="mt-1 text-slate-600">
+                        {user.student?.department?.code ||
+                          user.instructor?.department?.code ||
+                          "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        )}
 
-        <div className="mt-4 text-sm text-slate-600">
-          Showing {filteredUsers.length} of {users.length} users
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    Role
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    ID/Entry Number
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    Department
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-12 text-center text-sm text-slate-600">
+                      No users found matching your filters.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <tr
+                      key={user.id}
+                      className="border-b border-slate-100 hover:bg-slate-50"
+                    >
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        {user.name || "N/A"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {user.email}
+                      </td>
+                      <td className="px-4 py-3">{getRoleBadge(user.role)}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+                        {user.student?.entryNumber ||
+                          user.instructor?.id.slice(0, 8) ||
+                          "N/A"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-600">
+                        {user.student?.department?.code ||
+                          user.instructor?.department?.code ||
+                          "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        <div className="mt-4 text-sm text-slate-600">\n          Showing {filteredUsers.length} of {users.length} users\n        </div>
       </div>
     </div>
   );

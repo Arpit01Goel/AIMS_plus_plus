@@ -156,24 +156,24 @@ export default function EnrollmentManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="flex items-start justify-between">
+      <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-8 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
               Enrollment Management
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-slate-900">
               Manage Course Enrollments
             </h1>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            <p className="mt-2 md:mt-3 text-sm leading-relaxed text-slate-600">
               Approve, reject, and manage student course enrollments
             </p>
           </div>
           <button
             onClick={handleExportEnrollments}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 md:px-6 py-2.5 md:py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
           >
             <FileDown className="h-4 w-4" />
             Export Enrollments
@@ -183,7 +183,7 @@ export default function EnrollmentManagementPage() {
         {/* Stats */}
         <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-4">
           <div className="text-center">
-            <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-xl md:text-2xl font-bold text-slate-900">{stats.total}</p>
             <p className="mt-1 text-xs font-medium text-slate-600">Total Enrollments</p>
           </div>
           <div className="text-center">
@@ -202,8 +202,8 @@ export default function EnrollmentManagementPage() {
       </div>
 
       {/* Bulk Operations */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">Bulk Enrollment Operations</h2>
+      <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+        <h2 className="text-base md:text-lg font-bold text-slate-900">Bulk Enrollment Operations</h2>
         <p className="mt-2 text-sm text-slate-600">
           Upload CSV to bulk enroll students or perform batch operations
         </p>
@@ -226,8 +226,8 @@ export default function EnrollmentManagementPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">Enrollment Records</h2>
+      <div className="rounded-xl md:rounded-2xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
+        <h2 className="text-base md:text-lg font-bold text-slate-900">Enrollment Records</h2>
 
         <div className="mt-4 flex flex-col gap-4 sm:flex-row">
           <div className="relative flex-1">
@@ -267,86 +267,176 @@ export default function EnrollmentManagementPage() {
           </div>
         </div>
 
-        {/* Enrollments Table */}
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b-2 border-slate-200 bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-slate-700">Student</th>
-                <th className="px-4 py-3 font-semibold text-slate-700">Program</th>
-                <th className="px-4 py-3 font-semibold text-slate-700">Course</th>
-                <th className="px-4 py-3 font-semibold text-slate-700">Section</th>
-                <th className="px-4 py-3 font-semibold text-slate-700">Status</th>
-                <th className="px-4 py-3 font-semibold text-slate-700">Grade</th>
-                <th className="px-4 py-3 font-semibold text-slate-700">Date</th>
-                <th className="px-4 py-3 text-center font-semibold text-slate-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filteredEnrollments.map((enrollment) => (
-                <tr key={enrollment.id} className="hover:bg-indigo-50/30">
-                  <td className="px-4 py-3">
-                    <div>
-                      <p className="font-semibold text-slate-900">{enrollment.studentName}</p>
-                      <p className="text-xs text-slate-600">{enrollment.studentId}</p>
+        {/* Enrollments Table - Desktop and Mobile Views */}
+        <div className="mt-4 md:mt-6">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {filteredEnrollments.length === 0 ? (
+              <div className="py-12 text-center">
+                <Users className="mx-auto h-12 w-12 text-slate-300" />
+                <p className="mt-2 text-sm text-slate-600">No enrollments found matching your filters.</p>
+              </div>
+            ) : (
+              filteredEnrollments.map((enrollment) => (
+                <div
+                  key={enrollment.id}
+                  className="border border-slate-200 rounded-lg p-4 space-y-3 bg-white"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-slate-900">
+                        {enrollment.studentName}
+                      </h3>
+                      <p className="mt-0.5 text-xs text-slate-600">{enrollment.studentId}</p>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">{enrollment.program}</td>
-                  <td className="px-4 py-3">
-                    <div>
-                      <p className="font-semibold text-slate-900">{enrollment.courseCode}</p>
-                      <p className="text-xs text-slate-600">{enrollment.courseTitle}</p>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">{enrollment.section}</td>
-                  <td className="px-4 py-3">{getStatusBadge(enrollment.status)}</td>
-                  <td className="px-4 py-3">
-                    {enrollment.grade ? (
-                      <span className="font-bold text-green-700">{enrollment.grade}</span>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{enrollment.enrolledDate}</td>
-                  <td className="px-4 py-3">
-                    {enrollment.status === 'PND' && (
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleApprove(enrollment.id)}
-                          className="rounded-lg bg-green-600 p-1.5 text-white transition hover:bg-green-700"
-                          title="Approve"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleReject(enrollment.id)}
-                          className="rounded-lg bg-indigo-600 p-1.5 text-white transition hover:bg-indigo-700"
-                          title="Reject"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    )}
-                    {enrollment.status === 'ENR' && (
-                      <div className="flex items-center justify-center">
-                        <button className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
-                          View
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {getStatusBadge(enrollment.status)}
+                  </div>
 
-        {filteredEnrollments.length === 0 && (
-          <div className="py-12 text-center">
-            <Users className="mx-auto h-12 w-12 text-slate-300" />
-            <p className="mt-2 text-sm text-slate-600">No enrollments found matching your filters.</p>
+                  <div className="space-y-2 text-xs">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <p className="font-semibold text-slate-700">Course</p>
+                        <p className="mt-0.5 text-slate-900">{enrollment.courseCode}</p>
+                        <p className="text-slate-600">{enrollment.courseTitle}</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-700">Program</p>
+                        <p className="mt-0.5 text-slate-600">{enrollment.program}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <p className="font-semibold text-slate-700">Section</p>
+                        <p className="mt-0.5 text-slate-600">{enrollment.section}</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-700">Grade</p>
+                        <p className="mt-0.5">
+                          {enrollment.grade ? (
+                            <span className="font-bold text-green-700">{enrollment.grade}</span>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-700">Date</p>
+                        <p className="mt-0.5 text-slate-600">{enrollment.enrolledDate}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {enrollment.status === 'PND' && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleApprove(enrollment.id)}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-700"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(enrollment.id)}
+                        className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                  {enrollment.status === 'ENR' && (
+                    <button className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
+                      View Details
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
           </div>
-        )}
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="border-b-2 border-slate-200 bg-slate-50">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Student</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Program</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Course</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Section</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Status</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Grade</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Date</th>
+                  <th className="px-4 py-3 text-center font-semibold text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredEnrollments.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center">
+                      <Users className="mx-auto h-12 w-12 text-slate-300" />
+                      <p className="mt-2 text-sm text-slate-600">No enrollments found matching your filters.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredEnrollments.map((enrollment) => (
+                    <tr key={enrollment.id} className="hover:bg-indigo-50/30">
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-semibold text-slate-900">{enrollment.studentName}</p>
+                          <p className="text-xs text-slate-600">{enrollment.studentId}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{enrollment.program}</td>
+                      <td className="px-4 py-3">
+                        <div>
+                          <p className="font-semibold text-slate-900">{enrollment.courseCode}</p>
+                          <p className="text-xs text-slate-600">{enrollment.courseTitle}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{enrollment.section}</td>
+                      <td className="px-4 py-3">{getStatusBadge(enrollment.status)}</td>
+                      <td className="px-4 py-3">
+                        {enrollment.grade ? (
+                          <span className="font-bold text-green-700">{enrollment.grade}</span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{enrollment.enrolledDate}</td>
+                      <td className="px-4 py-3">
+                        {enrollment.status === 'PND' && (
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleApprove(enrollment.id)}
+                              className="rounded-lg bg-green-600 p-1.5 text-white transition hover:bg-green-700"
+                              title="Approve"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleReject(enrollment.id)}
+                              className="rounded-lg bg-red-600 p-1.5 text-white transition hover:bg-red-700"
+                              title="Reject"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        )}
+                        {enrollment.status === 'ENR' && (
+                          <div className="flex items-center justify-center">
+                            <button className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
+                              View
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
