@@ -146,6 +146,7 @@ model SignupRequest {
   id              String    @id @default(cuid())
   email           String    @unique
   name            String
+  role            Role      @default(STUDENT) // STUDENT or INSTRUCTOR
   entryNumber     String?   // Optional for initial request
   phone           String?
   status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
@@ -159,6 +160,7 @@ model SignupRequest {
   @@index([email])
   @@index([status])
   @@index([createdAt])
+  @@index([role])
 }
 
 // ============================================================================
@@ -408,8 +410,7 @@ model CourseOffering {
   capacity Int            @default(60)
   slot     String? // e.g., "A1", "B2"
   status   OfferingStatus @default(ENROLLING)
-  allowedBatches String[] @default([])
-  allowedProgramCodes String[] @default([])
+  allowed Json? // Array of {programCode: string, batch: string} pairs
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

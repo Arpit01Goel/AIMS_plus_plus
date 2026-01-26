@@ -201,7 +201,6 @@ export async function GET() {
         profile = {
           ...profile,
           isAdvisor: true,
-          primaryCohort: user.instructor.primaryCohort,
           advisorNotes: user.instructor.advisorNotes,
           totalAdvisees: adviseeCount,
         };

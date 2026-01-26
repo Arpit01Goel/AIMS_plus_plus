@@ -1,8 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, UserCog, Plus, Edit, Trash, Users, Settings } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  UserCog,
+  Plus,
+  Edit,
+  Trash,
+  Users,
+  Settings,
+} from "lucide-react";
 
 interface Advisor {
   id: string;
@@ -10,7 +18,6 @@ interface Advisor {
   title: string | null;
   officialEmail: string | null;
   isAdvisor: boolean;
-  primaryCohort: number | null;
   advisorNotes: string | null;
   user: {
     name: string | null;
@@ -30,8 +37,8 @@ export default function BatchAdvisorsPage() {
   const router = useRouter();
   const [advisors, setAdvisors] = useState<Advisor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
 
   useEffect(() => {
     fetchAdvisors();
@@ -40,12 +47,12 @@ export default function BatchAdvisorsPage() {
   const fetchAdvisors = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/advisors');
-      if (!response.ok) throw new Error('Failed to fetch advisors');
+      const response = await fetch("/api/admin/advisors");
+      if (!response.ok) throw new Error("Failed to fetch advisors");
       const data = await response.json();
       setAdvisors(data.advisors || []);
     } catch (error) {
-      console.error('Error fetching advisors:', error);
+      console.error("Error fetching advisors:", error);
     } finally {
       setLoading(false);
     }
@@ -55,18 +62,25 @@ export default function BatchAdvisorsPage() {
     const matchesSearch =
       advisor.user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       advisor.user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDepartment = departmentFilter === 'all' || advisor.department?.code === departmentFilter;
+    const matchesDepartment =
+      departmentFilter === "all" ||
+      advisor.department?.code === departmentFilter;
     return matchesSearch && matchesDepartment;
   });
 
-  const departments = Array.from(new Set(advisors.map(a => a.department?.code).filter(Boolean)));
-  const totalStudents = advisors.reduce((sum, a) => sum + (a._count?.advisees || 0), 0);
+  const departments = Array.from(
+    new Set(advisors.map((a) => a.department?.code).filter(Boolean)),
+  );
+  const totalStudents = advisors.reduce(
+    (sum, a) => sum + (a._count?.advisees || 0),
+    0,
+  );
 
   const stats = {
     total: advisors.length,
     totalStudents: totalStudents,
-    avgStudentsPerAdvisor: advisors.length > 0 ? Math.round(totalStudents / advisors.length) : 0,
-    totalBatches: advisors.filter(a => a.primaryCohort).length,
+    avgStudentsPerAdvisor:
+      advisors.length > 0 ? Math.round(totalStudents / advisors.length) : 0,
   };
 
   return (
@@ -86,8 +100,8 @@ export default function BatchAdvisorsPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <button 
-              onClick={() => router.push('/admin/advisors/manage')}
+            <button
+              onClick={() => router.push("/admin/advisors/manage")}
               className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700"
             >
               <Settings className="h-4 w-4" />
@@ -97,22 +111,28 @@ export default function BatchAdvisorsPage() {
         </div>
 
         {/* Stats */}
-        <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-4">
+        <div className="mt-6 grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-3">
           <div className="text-center">
             <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
-            <p className="mt-1 text-xs font-medium text-slate-600">Active Advisors</p>
+            <p className="mt-1 text-xs font-medium text-slate-600">
+              Active Advisors
+            </p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-indigo-600">{stats.totalBatches}</p>
-            <p className="mt-1 text-xs font-medium text-slate-600">With Cohorts</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {stats.totalStudents}
+            </p>
+            <p className="mt-1 text-xs font-medium text-slate-600">
+              Total Students
+            </p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">{stats.totalStudents}</p>
-            <p className="mt-1 text-xs font-medium text-slate-600">Total Students</p>
-          </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold text-green-600">{stats.avgStudentsPerAdvisor}</p>
-            <p className="mt-1 text-xs font-medium text-slate-600">Avg per Advisor</p>
+            <p className="text-2xl font-bold text-green-600">
+              {stats.avgStudentsPerAdvisor}
+            </p>
+            <p className="mt-1 text-xs font-medium text-slate-600">
+              Avg per Advisor
+            </p>
           </div>
         </div>
       </div>
@@ -141,7 +161,9 @@ export default function BatchAdvisorsPage() {
             >
               <option value="all">All Departments</option>
               {departments.map((dept) => (
-                <option key={dept} value={dept}>{dept}</option>
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
               ))}
             </select>
           </div>
@@ -150,10 +172,13 @@ export default function BatchAdvisorsPage() {
         {/* Advisors List */}
         <div className="mt-6 space-y-3">
           {loading ? (
-            <div className="p-8 text-center text-slate-600">Loading advisors...</div>
+            <div className="p-8 text-center text-slate-600">
+              Loading advisors...
+            </div>
           ) : filteredAdvisors.length === 0 ? (
             <div className="p-8 text-center text-slate-600">
-              No advisors found. Use "Manage Advisor Status" to assign instructors as advisors.
+              No advisors found. Use "Manage Advisor Status" to assign
+              instructors as advisors.
             </div>
           ) : (
             filteredAdvisors.map((advisor) => (
@@ -170,33 +195,23 @@ export default function BatchAdvisorsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-bold text-slate-900">
-                          {advisor.user.name || 'N/A'}
+                          {advisor.user.name || "N/A"}
                         </h3>
-                        {advisor.primaryCohort && (
-                          <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-800">
-                            Cohort {advisor.primaryCohort}
-                          </span>
-                        )}
                       </div>
 
                       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600">
-                        <span>{advisor.department?.name || 'No Department'}</span>
+                        <span>
+                          {advisor.department?.name || "No Department"}
+                        </span>
                         <span>{advisor.user.email}</span>
                         <span className="flex items-center gap-1 font-semibold text-indigo-600">
                           <Users className="h-3.5 w-3.5" />
                           {advisor._count?.advisees || 0} students
                         </span>
                       </div>
-
-                      {advisor.advisorNotes && (
-                        <div className="mt-3">
-                          <p className="text-xs font-semibold text-slate-700">Notes:</p>
-                          <p className="mt-1 text-xs text-slate-600">{advisor.advisorNotes}</p>
-                        </div>
-                      )}
                     </div>
                   </div>
-              </div>
+                </div>
               </div>
             ))
           )}

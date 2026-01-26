@@ -8,6 +8,8 @@ type Step = "email" | "verify-otp" | "success";
 export default function SignupPage() {
   const [currentStep, setCurrentStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<"STUDENT" | "INSTRUCTOR">("STUDENT");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -89,7 +91,7 @@ export default function SignupPage() {
 
   const handleOtpKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       const prevInput = document.getElementById(`otp-${index - 1}`);
@@ -127,6 +129,8 @@ export default function SignupPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          name,
+          role,
         }),
       });
 
@@ -143,8 +147,6 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
-
-
 
   return (
     <>
@@ -164,7 +166,11 @@ export default function SignupPage() {
                 }}
                 className="ml-3 flex-shrink-0 rounded-full bg-indigo-600 p-1 text-white hover:bg-indigo-700"
               >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="h-4 w-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -242,7 +248,8 @@ export default function SignupPage() {
 
             {/* Subtitle */}
             <p className="text-lg text-indigo-300/80 max-w-md mx-auto leading-relaxed">
-              Join our academic community. Create your account to access the portal.
+              Join our academic community. Create your account to access the
+              portal.
             </p>
 
             {/* Decorative elements */}
@@ -272,15 +279,105 @@ export default function SignupPage() {
                 <p className="text-sm text-indigo-200 mt-2">
                   {currentStep === "email" && "Enter your institutional email"}
                   {currentStep === "verify-otp" && "Verify your email address"}
-                  {currentStep === "success" && "Request submitted successfully"}
+                  {currentStep === "success" &&
+                    "Request submitted successfully"}
                 </p>
               </div>
-
-
 
               {/* Step 1: Email */}
               {currentStep === "email" && (
                 <form onSubmit={handleSendOTP} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-white mb-2">
+                      I am a
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setRole("STUDENT")}
+                        className={`rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all ${
+                          role === "STUDENT"
+                            ? "border-white bg-white text-indigo-900"
+                            : "border-white/30 bg-white/10 text-white hover:border-white/50"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <svg
+                            className="h-6 w-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                            />
+                          </svg>
+                          <span>Student</span>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRole("INSTRUCTOR")}
+                        className={`rounded-xl border-2 px-4 py-3 text-sm font-semibold transition-all ${
+                          role === "INSTRUCTOR"
+                            ? "border-white bg-white text-indigo-900"
+                            : "border-white/30 bg-white/10 text-white hover:border-white/50"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <svg
+                            className="h-6 w-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                          </svg>
+                          <span>Instructor</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-white">
+                      Full Name
+                    </label>
+                    <div className="relative mt-1.5">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          className="h-4 w-4 text-indigo-200"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full rounded-xl border border-white/30 bg-white/10 pl-10 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-medium text-white">
                       Email Address
@@ -332,7 +429,9 @@ export default function SignupPage() {
                           type="text"
                           maxLength={1}
                           value={digit}
-                          onChange={(e) => handleOtpChange(index, e.target.value)}
+                          onChange={(e) =>
+                            handleOtpChange(index, e.target.value)
+                          }
                           onKeyDown={(e) => handleOtpKeyDown(index, e)}
                           className="h-12 w-10 rounded-xl border border-white/30 bg-white/10 backdrop-blur-sm text-center text-xl font-bold text-white transition focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
                         />
@@ -376,8 +475,6 @@ export default function SignupPage() {
                 </form>
               )}
 
-
-
               {/* Success Step */}
               {currentStep === "success" && (
                 <div className="text-center space-y-6">
@@ -404,8 +501,8 @@ export default function SignupPage() {
                       Request Submitted!
                     </h3>
                     <p className="text-sm text-indigo-200">
-                      Your signup request has been submitted to the admin. You will
-                      receive an email once your account is approved.
+                      Your signup request has been submitted to the admin. You
+                      will receive an email once your account is approved.
                     </p>
                   </div>
 

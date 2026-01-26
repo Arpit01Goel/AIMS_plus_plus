@@ -6,12 +6,20 @@ const ALLOWED_DOMAIN = process.env.ALLOWED_EMAIL_DOMAIN || 'iitrpr.ac.in';
 
 export async function POST(request: NextRequest) {
     try {
-        const { email, name, entryNumber, phone } = await request.json();
+        const { email, name, entryNumber, phone, role } = await request.json();
 
         // Validate required fields
         if (!email) {
             return NextResponse.json(
                 { success: false, message: 'Email is required' },
+                { status: 400 }
+            );
+        }
+
+        // Validate role
+        if (!role || !['STUDENT', 'INSTRUCTOR'].includes(role)) {
+            return NextResponse.json(
+                { success: false, message: 'Valid role is required (STUDENT or INSTRUCTOR)' },
                 { status: 400 }
             );
         }
@@ -83,6 +91,7 @@ export async function POST(request: NextRequest) {
                     where: { email },
                     data: {
                         name: userName,
+                        role: role as any,
                         entryNumber: entryNumber || null,
                         phone: phone || null,
                         emailVerified: true,
@@ -106,6 +115,7 @@ export async function POST(request: NextRequest) {
                     where: { email },
                     data: {
                         name: userName,
+                        role: role as any,
                         entryNumber: entryNumber || null,
                         phone: phone || null,
                         emailVerified: true,
@@ -130,6 +140,7 @@ export async function POST(request: NextRequest) {
             data: {
                 email,
                 name: userName,
+                role: role as any,
                 entryNumber: entryNumber || null,
                 phone: phone || null,
                 emailVerified: true,

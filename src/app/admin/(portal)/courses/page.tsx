@@ -194,40 +194,6 @@ export default function CourseManagementPage() {
         </div>
       </div>
 
-      {/* Bulk Upload */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900">Bulk Course Upload</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Upload CSV file to create multiple courses. System auto-calculates Study hours and Credits from LTP.
-        </p>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <button
-            onClick={handleDownloadTemplate}
-            className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-4 text-sm font-semibold text-slate-700 transition hover:border-blue-400 hover:bg-blue-50"
-          >
-            <Upload className="h-5 w-5" />
-            Download CSV Template
-          </button>
-
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50 px-6 py-4 text-sm font-semibold text-indigo-700 transition hover:border-indigo-400 hover:bg-indigo-100">
-            <Upload className="h-5 w-5" />
-            Upload Courses CSV
-            <input type="file" accept=".csv" onChange={handleBulkUpload} className="hidden" />
-          </label>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm font-semibold text-blue-900">Auto-Calculation Logic:</p>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-xs text-blue-800">
-            <li>Input: L-T-P (e.g., 3-1-2)</li>
-            <li>Study Hours (S) = 2*L - T + 0.5*P = 2*3 - 1 + 0.5*2 = 6</li>
-            <li>Credits (C) = L + 0.5*P = 3 + 0.5*2 = 4</li>
-            <li>Output: L-T-P-S-C (e.g., 3-1-2-6-4)</li>
-          </ul>
-        </div>
-      </div>
-
       {/* Search and Filters */}
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold text-slate-900">Course Catalog</h2>

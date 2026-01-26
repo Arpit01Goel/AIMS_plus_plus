@@ -40,8 +40,7 @@ export async function POST(request: Request) {
       slot,
       sessionCode,
       instructorIds,
-      allowedBatches,
-      allowedProgramCode,
+      allowed,
     } = body;
 
     // Validate required fields
@@ -125,8 +124,7 @@ export async function POST(request: Request) {
         capacity: capacity ? parseInt(capacity) : 60,
         slot: slot || null,
         status: 'ENROLLING',
-        allowedBatches: allowedBatches || [],
-        allowedProgramCodes: allowedProgramCode || [],
+        allowed: allowed || null,
       },
       include: {
         course: true,

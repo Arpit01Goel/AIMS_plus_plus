@@ -80,20 +80,21 @@ export async function GET() {
         const studentProgramCode = student.program?.code;
 
         const filteredOfferings = offerings.filter((offering) => {
-            // Check batch restriction
-            const batchAllowed =
-                !offering.allowedBatches ||
-                offering.allowedBatches.length === 0 ||
-                (studentBatch && offering.allowedBatches.includes(studentBatch));
 
-            // Check program code restriction
-            const programAllowed =
-                !offering.allowedProgramCodes ||
-                offering.allowedProgramCodes.length === 0 ||
-                (studentProgramCode && offering.allowedProgramCodes.includes(studentProgramCode));
-
-            // Only include if both restrictions are satisfied
-            return batchAllowed && programAllowed;
+            // Check allowed (programCode + batch pairs)
+            if (!offering.allowed) {
+                return true; // No restrictions, allow all
+            }
+            
+            const restrictions = offering.allowed as Array<{programCode: string; batch: string}>;
+            if (!restrictions || restrictions.length === 0) {
+                return true; // Empty restrictions, allow all
+            }
+            
+            // Check if student's program+batch combination is in the allowed list
+            return restrictions.some(
+                (r) => r.programCode === studentProgramCode && r.batch === studentBatch
+            );
         });
 
         // Create a map of enrolled offering IDs for quick lookup

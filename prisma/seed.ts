@@ -539,7 +539,9 @@ async function main() {
       capacity: 60,
       slot: 'A1',
       status: 'ENROLLING', // Course is open for enrollment
-      allowedBatches: ['2023'],
+      allowed: [
+        { programCode: 'BTECH_CSE', batch: '2023' }
+      ],
       courseMeetings: {
         create: [
           {
@@ -573,7 +575,9 @@ async function main() {
       capacity: 50,
       slot: 'B2',
       status: 'RUNNING', // Course is currently running
-      allowedBatches: ['2023'],
+      allowed: [
+        { programCode: 'BTECH_CSE', batch: '2023' }
+      ],
       courseMeetings: {
         create: [
           {
@@ -601,7 +605,10 @@ async function main() {
       capacity: 40,
       slot: 'C1',
       status: 'ENROLLING', // Course is open for enrollment
-      allowedBatches: ['2023'],
+      allowed: [
+        { programCode: 'BTECH_CSE', batch: '2023' }
+      ],
+
       courseMeetings: {
         create: [
           {

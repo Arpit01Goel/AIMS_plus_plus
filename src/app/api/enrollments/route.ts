@@ -65,25 +65,24 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Validate allowedBatches constraint
-      if (offering.allowedBatches && offering.allowedBatches.length > 0) {
-        const studentBatch = student.batch?.toString();
-        if (!studentBatch || !offering.allowedBatches.includes(studentBatch)) {
-          return NextResponse.json(
-            { error: 'Your batch is not allowed to enroll in this course' },
-            { status: 403 }
+      // Validate allowed constraint (programCode + batch pairs)
+      if (offering.allowed) {
+        const restrictions = offering.allowed as Array<{programCode: string; batch: string}>;
+        if (restrictions && restrictions.length > 0) {
+          const studentBatch = student.batch?.toString();
+          const studentProgramCode = student.program?.code;
+          
+          // Check if student's program+batch combination is in the allowed list
+          const isAllowed = restrictions.some(
+            (r) => r.programCode === studentProgramCode && r.batch === studentBatch
           );
-        }
-      }
-
-      // Validate allowedProgramCode constraint
-      if (offering.allowedProgramCodes && offering.allowedProgramCodes.length > 0) {
-        const studentProgramCode = student.program?.code;
-        if (!studentProgramCode || !offering.allowedProgramCodes.includes(studentProgramCode)) {
-          return NextResponse.json(
-            { error: 'Your program is not allowed to enroll in this course' },
-            { status: 403 }
-          );
+          
+          if (!isAllowed) {
+            return NextResponse.json(
+              { error: 'Your program and batch combination is not allowed to enroll in this course' },
+              { status: 403 }
+            );
+          }
         }
       }
 
